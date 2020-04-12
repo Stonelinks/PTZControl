@@ -1,6 +1,6 @@
 import React from "react";
 
-const DEBUG = false;
+const DEBUG = true;
 
 const Debug: React.FC<{
   d: any;

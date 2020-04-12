@@ -1,6 +1,7 @@
 import React from "react";
 import { apiCall } from "../utils/api";
 import { reload } from "../utils/url";
+import Debug from "../utils/debug";
 
 enum CONNECTIVITY_STATE {
   unknown = "Loading...",
@@ -12,6 +13,7 @@ const App = () => {
   const [connectivityState, setConnectivityState] = React.useState(
     CONNECTIVITY_STATE.unknown,
   );
+  const [devices, setDevices] = React.useState("???");
 
   React.useEffect(() => {
     (async () => {
@@ -21,6 +23,8 @@ const App = () => {
             const ping = await apiCall("ping");
             if (ping.pong === "pong") {
               setConnectivityState(CONNECTIVITY_STATE.connected);
+              const d = await apiCall("list-video-devices");
+              setDevices(d);
             } else {
               reload();
             }
@@ -43,6 +47,7 @@ const App = () => {
               <h1>PTZ Control</h1>
             </div>
           </div>
+          <Debug d={devices} />
           {/* <PaginationControls
                 currPage={currPage}
                 setCurrPage={setCurrPage}

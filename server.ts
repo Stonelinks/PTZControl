@@ -3,6 +3,7 @@ import * as cors from "cors";
 import * as express from "express";
 import { SERVER_PORT, VIEWER_FOLDER } from "./utils/common";
 import cron from "./utils/cron";
+import { listVideoDevices } from "./utils/devices";
 
 const app = express();
 
@@ -27,10 +28,9 @@ app.get("/update-apps", (req, res) => {
   shouldRestart = false;
 });
 
-// app.get("/gh-rate-limit", async (req, res) => {
-//   const rateResponse = await octokit.rateLimit.get();
-//   res.send(JSON.stringify(rateResponse.data));
-// });
+app.get("/list-video-devices", (req, res) => {
+  res.send(JSON.stringify(listVideoDevices()));
+});
 
 // // Download a bunch of build info from buildkite
 // app.get("/build-info/:branch/:page", async (req, res) => {
