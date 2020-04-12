@@ -1,0 +1,44 @@
+{
+  "name": "PTZControl",
+  "version": "1.0.0",
+  "main": "",
+  "repository": "git@github.com:Stonelinks/chat.git",
+  "author": "Lucas Doyle <lucas.p.doyle@gmail.com>",
+  "license": "MIT",
+  "engines": {
+    "node": "12.11.1"
+  },
+  "private": true,
+  "scripts": {
+    "build": "cd ptz-viewer && yarn build",
+    "clean": "rm -rf yarn.lock node_modules && cd ptz-viewer && rm -rf yarn.lock node_modules build",
+    "dev-client": "cd ptz-viewer && yarn dev-start",
+    "dev-server": "ts-node-dev --no-notify server.ts",
+    "dev": "yarn sync-common && concurrently \"yarn dev-server\" \"yarn dev-client\"",
+    "fix": "lint",
+    "prettier": "./prettier-write",
+    "reset": "yarn clean && yarn setup",
+    "scripts": "cat package.json | jq .scripts",
+    "setup": "yarn && cd ptz-viewer && yarn",
+    "sync-common": "sync-common",
+    "start-server": "ts-node server.ts",
+    "start": "yarn setup && yarn sync-common && yarn build && concurrently \"yarn start-server\" \"python -m webbrowser http://localhost:1302\""
+  },
+  "prettier": {
+    "trailingComma": "all"
+  },
+  "dependencies": {
+    "concurrently": "^5.1.0",
+    "cors": "^2.8.5",
+    "express": "^4.17.1",
+    "flat-cache": "^2.0.1",
+    "prettier": "^1.19.1",
+    "promisify-child-process": "^3.1.3",
+    "ts-node": "^8.6.2",
+    "ts-node-dev": "^1.0.0-pre.44",
+    "tslint": "^6.0.0",
+    "tslint-microsoft-contrib": "^6.2.0",
+    "tslint-react-hooks": "^2.2.1",
+    "typescript": "^3.7.4"
+  }
+}
