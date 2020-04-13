@@ -6,7 +6,7 @@
   "author": "Lucas Doyle <lucas.p.doyle@gmail.com>",
   "license": "MIT",
   "engines": {
-    "node": "12.11.1"
+    "node": "10.13.0"
   },
   "private": true,
   "scripts": {
@@ -28,6 +28,7 @@
     "trailingComma": "all"
   },
   "dependencies": {
+    "@hypersolution/v4l2camera": "^1.0.6",
     "concurrently": "^5.1.0",
     "cors": "^2.8.5",
     "express": "^4.17.1",
