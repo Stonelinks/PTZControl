@@ -1,7 +1,27 @@
 import React from "react";
-import { apiCall } from "../utils/api";
+import { apiFetch } from "../utils/api";
 import { reload } from "../utils/url";
 import Debug from "../utils/debug";
+import { connect, ConnectedProps } from "react-redux";
+import { RootState } from "../redux";
+import { apiCall } from "../redux/api/actions";
+
+const mapState = (state: RootState) => ({
+  devices: state.api.devices.value,
+  deviceState: state.api.devices.state,
+});
+
+const mapDispatch = {
+  onFetchDevices: () => apiCall("devices"),
+};
+
+const connector = connect(mapState, mapDispatch);
+
+type PropsFromRedux = ConnectedProps<typeof connector>;
+
+interface OwnProps {}
+
+type Props = PropsFromRedux & OwnProps;
 
 enum CONNECTIVITY_STATE {
   unknown = "Loading...",
@@ -9,22 +29,19 @@ enum CONNECTIVITY_STATE {
   disconnected = "Disconnected",
 }
 
-const App = () => {
+const App = ({ devices, deviceState, onFetchDevices }: Props) => {
   const [connectivityState, setConnectivityState] = React.useState(
     CONNECTIVITY_STATE.unknown,
   );
-  const [devices, setDevices] = React.useState("???");
 
   React.useEffect(() => {
     (async () => {
       switch (connectivityState) {
         case CONNECTIVITY_STATE.unknown:
           try {
-            const ping = await apiCall("ping");
+            const ping = await apiFetch("ping");
             if (ping.pong === "pong") {
               setConnectivityState(CONNECTIVITY_STATE.connected);
-              const d = await apiCall("list-video-devices");
-              setDevices(d);
             } else {
               reload();
             }
@@ -47,7 +64,8 @@ const App = () => {
               <h1>PTZ Control</h1>
             </div>
           </div>
-          <Debug d={devices} />
+          <Debug d={{ deviceState, devices }} />
+          <button onClick={onFetchDevices}>fetch devices</button>
           {/* <PaginationControls
                 currPage={currPage}
                 setCurrPage={setCurrPage}
@@ -60,4 +78,4 @@ const App = () => {
   );
 };
 
-export default App;
+export default connector(App);
