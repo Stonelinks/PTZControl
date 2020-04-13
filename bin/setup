@@ -16,3 +16,5 @@ fi
 echo
 
 yarn
+cd ptz-viewer
+yarn
