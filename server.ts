@@ -3,7 +3,14 @@ import * as cors from "cors";
 import * as express from "express";
 import { SERVER_PORT, VIEWER_FOLDER } from "./utils/common";
 import cron from "./utils/cron";
-import { listVideoDevices } from "./utils/devices";
+import {
+  listVideoDevices,
+  getOrCreateV4LCameraDevice,
+  takeSnapshot,
+} from "./utils/videoDevices";
+
+// @ts-ignore
+const NodeWebcam = require("node-webcam");
 
 const app = express();
 
@@ -28,17 +35,30 @@ app.get("/update-apps", (req, res) => {
   shouldRestart = false;
 });
 
-app.get("/list-video-devices", (req, res) => {
+app.get("/list-video-devices", async (req, res) => {
+  const l = await listVideoDevices();
   res.send(
-    JSON.stringify(
-      listVideoDevices().map(deviceFilename => deviceFilename.split("/").pop()),
-    ),
+    JSON.stringify(l.map(deviceFilename => deviceFilename.split("/").pop())),
   );
 });
 
-// // Download a bunch of build info from buildkite
-// app.get("/build-info/:branch/:page", async (req, res) => {
-//   const branch = req.params.branch;
+app.get("/video-device/:deviceId/snapshot.jpg", async (req, res) => {
+  const deviceId = req.params.deviceId;
+  const data = await takeSnapshot(deviceId);
+  res.send(data);
+});
+
+app.get("/video-device/:deviceId/formats", (req, res) => {
+  const deviceId = req.params.deviceId;
+  const cam = getOrCreateV4LCameraDevice(deviceId);
+  res.send(JSON.stringify(cam.formats));
+});
+
+app.get("/video-device/:deviceId/controls", (req, res) => {
+  const deviceId = req.params.deviceId;
+  const cam = getOrCreateV4LCameraDevice(deviceId);
+  res.send(JSON.stringify(cam.controls));
+});
 
 app.get("*", (req, res) => {
   res.sendFile(`${VIEWER_FOLDER}/index.html`);

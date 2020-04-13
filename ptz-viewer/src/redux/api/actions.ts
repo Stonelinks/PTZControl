@@ -1,6 +1,6 @@
 import { Action, AppThunk } from "../types";
 import { APIResource } from "./types";
-import { apiFetch } from "../../utils/api";
+import { apiFetch, fillInUrlTemplate } from "../../utils/api";
 
 export const API_REQUEST = "API_REQUEST";
 export const API_RESPONSE = "API_RESPONSE";
@@ -38,15 +38,16 @@ export const apiResponseAction = ({
   },
 });
 
-export const apiCall = (resource: APIResource): AppThunk<void> => async (
-  dispatch,
-  getState,
-) => {
+export const apiCall = (
+  resource: APIResource,
+  urlOptions?: object,
+): AppThunk<void> => async (dispatch, getState) => {
   dispatch(apiRequestAction({ resource }));
   const state = getState();
   const apiState = state.api;
   const { url } = apiState[resource];
-  const r = await apiFetch(url);
+  const finalUrl = fillInUrlTemplate(url, urlOptions);
+  const r = await apiFetch(finalUrl);
   dispatch(apiResponseAction({ resource, response: r }));
 };
 

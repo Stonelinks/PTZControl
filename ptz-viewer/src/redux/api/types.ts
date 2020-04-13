@@ -12,6 +12,8 @@ export interface APIRequest {
 
 export interface APIStoreState {
   devices: APIRequest;
+  deviceFormats: APIRequest;
+  deviceControls: APIRequest;
 }
 
 export type APIResource = keyof APIStoreState;

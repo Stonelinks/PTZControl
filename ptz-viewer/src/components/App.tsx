@@ -5,13 +5,13 @@ import Debug from "../utils/debug";
 import { connect, ConnectedProps } from "react-redux";
 import { RootState } from "../redux";
 import { apiCall } from "../redux/api/actions";
+import VideoDevice from "./VideoDevice";
 
-// import { LocationProvider, Match, MatchFirst, Link } from "react-location";
-
-const { LocationProvider, Match, MatchFirst, Link } = require("react-location");
+const { Match, MatchFirst, Link } = require("react-location");
 
 const mapState = (state: RootState) => ({
   devices: state.api.devices.value,
+  deviceFormats: state.api.deviceFormats.value,
 });
 
 const mapDispatch = {
@@ -90,7 +90,7 @@ const App = ({ devices, onFetchDevices }: Props) => {
           <MatchFirst>
             <Match path=":deviceId">
               {({ deviceId }: { deviceId: string }) => (
-                <div>This device #{deviceId}</div>
+                <VideoDevice deviceId={deviceId} />
               )}
             </Match>
           </MatchFirst>

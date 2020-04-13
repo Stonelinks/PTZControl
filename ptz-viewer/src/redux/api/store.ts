@@ -11,6 +11,8 @@ const makeRequestInitialState = (url: string): APIRequest => ({
 
 const InitialAPIReducerState: APIStoreState = {
   devices: makeRequestInitialState("list-video-devices"),
+  deviceFormats: makeRequestInitialState("video-device/:deviceId/formats"),
+  deviceControls: makeRequestInitialState("video-device/:deviceId/controls"),
 };
 
 const APIStore = (

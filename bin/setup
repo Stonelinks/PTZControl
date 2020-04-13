@@ -18,3 +18,12 @@ echo
 yarn
 cd ptz-viewer
 yarn
+
+# https://www.npmjs.com/package/node-webcam#install
+case $OS in
+macos)
+  brew install imagesnap
+;;
+linux)
+  sudo apt-get install fswebcam
+esac
