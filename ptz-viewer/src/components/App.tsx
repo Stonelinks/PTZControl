@@ -6,9 +6,12 @@ import { connect, ConnectedProps } from "react-redux";
 import { RootState } from "../redux";
 import { apiCall } from "../redux/api/actions";
 
+// import { LocationProvider, Match, MatchFirst, Link } from "react-location";
+
+const { LocationProvider, Match, MatchFirst, Link } = require("react-location");
+
 const mapState = (state: RootState) => ({
   devices: state.api.devices.value,
-  deviceState: state.api.devices.state,
 });
 
 const mapDispatch = {
@@ -29,7 +32,7 @@ enum CONNECTIVITY_STATE {
   disconnected = "Disconnected",
 }
 
-const App = ({ devices, deviceState, onFetchDevices }: Props) => {
+const App = ({ devices, onFetchDevices }: Props) => {
   const [connectivityState, setConnectivityState] = React.useState(
     CONNECTIVITY_STATE.unknown,
   );
@@ -42,6 +45,7 @@ const App = ({ devices, deviceState, onFetchDevices }: Props) => {
             const ping = await apiFetch("ping");
             if (ping.pong === "pong") {
               setConnectivityState(CONNECTIVITY_STATE.connected);
+              onFetchDevices();
             } else {
               reload();
             }
@@ -64,8 +68,32 @@ const App = ({ devices, deviceState, onFetchDevices }: Props) => {
               <h1>PTZ Control</h1>
             </div>
           </div>
-          <Debug d={{ deviceState, devices }} />
-          <button onClick={onFetchDevices}>fetch devices</button>
+          <Debug d={{ devices }} />
+          {devices &&
+            devices.length &&
+            devices.map((deviceId: string) => (
+              <div
+                key={deviceId}
+                style={{ display: "inline-block", paddingRight: "10px" }}
+              >
+                <Link
+                  to={`/${deviceId}`}
+                  getActiveProps={(location: string) => ({
+                    style: { color: "blue" },
+                  })}
+                >
+                  <h2>{deviceId}</h2>
+                </Link>
+              </div>
+            ))}
+
+          <MatchFirst>
+            <Match path=":deviceId">
+              {({ deviceId }: { deviceId: string }) => (
+                <div>This device #{deviceId}</div>
+              )}
+            </Match>
+          </MatchFirst>
           {/* <PaginationControls
                 currPage={currPage}
                 setCurrPage={setCurrPage}

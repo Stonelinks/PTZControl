@@ -7,13 +7,17 @@ import { createStore, applyMiddleware } from "redux";
 import thunk from "redux-thunk";
 import rootReducer from "./redux";
 
+const { LocationProvider } = require("react-location");
+
 initUpdateCheckInterval();
 
 const store = createStore(rootReducer, applyMiddleware(thunk));
 
 ReactDOM.render(
-  <Provider store={store}>
-    <App />
-  </Provider>,
+  <LocationProvider>
+    <Provider store={store}>
+      <App />
+    </Provider>
+  </LocationProvider>,
   document.getElementById("root"),
 );

@@ -29,7 +29,11 @@ app.get("/update-apps", (req, res) => {
 });
 
 app.get("/list-video-devices", (req, res) => {
-  res.send(JSON.stringify(listVideoDevices()));
+  res.send(
+    JSON.stringify(
+      listVideoDevices().map(deviceFilename => deviceFilename.split("/").pop()),
+    ),
+  );
 });
 
 // // Download a bunch of build info from buildkite
