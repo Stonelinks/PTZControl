@@ -1,5 +1,5 @@
 import * as flatCache from "flat-cache";
-import { CACHE_FOLDER } from "./common";
+import { CACHE_FOLDER } from "../common/constants";
 
 const caches = {};
 

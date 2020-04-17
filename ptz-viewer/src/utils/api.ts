@@ -1,5 +1,6 @@
-import { SERVER_PORT, MILLISECONDS_IN_SECOND } from "./common";
 import { reload } from "./url";
+import { SERVER_PORT } from "../common/constants";
+import { MILLISECONDS_IN_SECOND } from "../common/time";
 
 export const BASE_URL = `http://${window.location.hostname}:${SERVER_PORT}`;
 

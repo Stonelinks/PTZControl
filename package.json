@@ -2,7 +2,7 @@
   "name": "PTZControl",
   "version": "1.0.0",
   "main": "",
-  "repository": "git@github.com:Stonelinks/chat.git",
+  "repository": "git@github.com:Stonelinks/PTZControl.git",
   "author": "Lucas Doyle <lucas.p.doyle@gmail.com>",
   "license": "MIT",
   "engines": {
@@ -13,7 +13,7 @@
     "build": "cd ptz-viewer && yarn build",
     "clean": "rm -rf yarn.lock node_modules && cd ptz-viewer && rm -rf yarn.lock node_modules build",
     "dev-client": "cd ptz-viewer && yarn dev-start",
-    "dev-server": "ts-node-dev --no-notify server.ts",
+    "dev-server": "ts-node-dev --no-notify src/server.ts",
     "dev": "yarn sync-common && concurrently \"yarn dev-server\" \"yarn dev-client\"",
     "fix": "lint",
     "prettier": "./prettier-write",
@@ -21,7 +21,7 @@
     "scripts": "cat package.json | jq .scripts",
     "setup": "yarn && cd ptz-viewer && yarn",
     "sync-common": "sync-common",
-    "start-server": "ts-node server.ts",
+    "start-server": "ts-node src/server.ts",
     "start": "yarn setup && yarn sync-common && yarn build && concurrently \"yarn start-server\" \"python -m webbrowser http://localhost:1302\""
   },
   "prettier": {
@@ -29,6 +29,7 @@
   },
   "dependencies": {
     "@hypersolution/v4l2camera": "^1.0.6",
+    "@types/express": "^4.17.6",
     "concurrently": "^5.1.0",
     "cors": "^2.8.5",
     "express": "^4.17.1",

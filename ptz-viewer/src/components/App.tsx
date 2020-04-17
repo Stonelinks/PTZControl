@@ -6,6 +6,7 @@ import { connect, ConnectedProps } from "react-redux";
 import { RootState } from "../redux";
 import { apiCall } from "../redux/api/actions";
 import VideoDevice from "./VideoDevice";
+import { encode } from "../common/encode";
 
 const { Match, MatchFirst, Link } = require("react-location");
 
@@ -71,21 +72,23 @@ const App = ({ devices, onFetchDevices }: Props) => {
           <Debug d={{ devices }} />
           {devices &&
             devices.length &&
-            devices.map((deviceId: string) => (
-              <div
-                key={deviceId}
-                style={{ display: "inline-block", paddingRight: "10px" }}
-              >
-                <Link
-                  to={`/${deviceId}`}
-                  getActiveProps={(location: string) => ({
-                    style: { color: "blue" },
-                  })}
+            devices
+              .map((d: string) => encode(d))
+              .map((deviceId: string) => (
+                <div
+                  key={deviceId}
+                  style={{ display: "inline-block", paddingRight: "10px" }}
                 >
-                  <h2>{deviceId}</h2>
-                </Link>
-              </div>
-            ))}
+                  <Link
+                    to={`/${deviceId}`}
+                    getActiveProps={(location: string) => ({
+                      style: { color: "blue" },
+                    })}
+                  >
+                    <h2>{deviceId}</h2>
+                  </Link>
+                </div>
+              ))}
 
           <MatchFirst>
             <Match path=":deviceId">

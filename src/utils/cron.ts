@@ -1,7 +1,4 @@
-import { MILLISECONDS_IN_SECOND } from "./common";
-
-export const timeout = (delay: number) =>
-  new Promise(res => setTimeout(res, delay));
+import { MILLISECONDS_IN_SECOND, timeout } from "../common/time";
 
 interface CronJobs {
   name: string;

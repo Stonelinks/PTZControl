@@ -1,0 +1,4 @@
+{
+  "captureDevice": "/dev/video0",
+  "controlsDevice": "/dev/video0"
+}

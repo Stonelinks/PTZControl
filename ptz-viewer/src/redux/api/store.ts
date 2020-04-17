@@ -1,7 +1,7 @@
 import produce from "immer";
 import { APIRequest, APIRequestState, APIStoreState } from "./types";
-import { nothing } from "../../utils/common";
 import { APIActions, API_REQUEST, API_RESPONSE } from "./actions";
+import { nothing } from "../../common/nothing";
 
 const makeRequestInitialState = (url: string): APIRequest => ({
   url,
@@ -10,7 +10,7 @@ const makeRequestInitialState = (url: string): APIRequest => ({
 });
 
 const InitialAPIReducerState: APIStoreState = {
-  devices: makeRequestInitialState("list-video-devices"),
+  devices: makeRequestInitialState("video-device/list"),
   deviceFormats: makeRequestInitialState("video-device/:deviceId/formats"),
   deviceControls: makeRequestInitialState("video-device/:deviceId/controls"),
 };
