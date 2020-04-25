@@ -3,10 +3,10 @@ node_modules
 secrets.sh
 .cache
 
-
 opt
 
 build
 
-
 tmp.jpg
+
+config.json

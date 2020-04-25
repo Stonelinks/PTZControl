@@ -1,13 +1,12 @@
 import React from "react";
-import { apiFetch } from "../utils/api";
-import { reload } from "../utils/url";
-import Debug from "../utils/debug";
 import { connect, ConnectedProps } from "react-redux";
 import { RootState } from "../redux";
 import { apiCall } from "../redux/api/actions";
-import VideoDevice from "./VideoDevice";
-import { encode } from "../common/encode";
+import { apiFetch } from "../utils/api";
+import { reload } from "../utils/url";
+import ConfigEditor from "./ConfigEditor";
 
+// tslint:disable-next-line:no-var-requires
 const { Match, MatchFirst, Link } = require("react-location");
 
 const mapState = (state: RootState) => ({
@@ -69,7 +68,8 @@ const App = ({ devices, onFetchDevices }: Props) => {
               <h1>PTZ Control</h1>
             </div>
           </div>
-          <Debug d={{ devices }} />
+          <ConfigEditor />
+          {/* <Debug d={{ devices }} />
           {devices &&
             devices.length &&
             devices

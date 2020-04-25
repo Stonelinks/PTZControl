@@ -1,6 +1,7 @@
 import { reload } from "./url";
 import { SERVER_PORT } from "../common/constants";
 import { MILLISECONDS_IN_SECOND } from "../common/time";
+import { encode } from "../common/encode";
 
 export const BASE_URL = `http://${window.location.hostname}:${SERVER_PORT}`;
 
@@ -20,7 +21,7 @@ export const fillInUrlTemplate = (urlTemplate: string, urlOptions?: object) => {
     if (urlOptions.hasOwnProperty(key)) {
       const k = `:${key}`;
       const v = (urlOptions as any)[key];
-      finalUrl = finalUrl.replace(k, v);
+      finalUrl = finalUrl.replace(k, encode(v));
     }
   }
   return finalUrl;

@@ -11,6 +11,8 @@ export interface APIRequest {
 }
 
 export interface APIStoreState {
+  getConfig: APIRequest;
+  setConfigValue: APIRequest;
   devices: APIRequest;
   deviceFormats: APIRequest;
   deviceControls: APIRequest;

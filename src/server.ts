@@ -2,7 +2,7 @@ import * as bodyParser from "body-parser";
 import * as cors from "cors";
 import * as express from "express";
 import { SERVER_PORT, VIEWER_FOLDER } from "./common/constants";
-import { initConfig } from "./utils/config";
+import { initConfig, registerConfigRoutes } from "./utils/config";
 import cron from "./utils/cron";
 import { registerVideoDeviceRoutes } from "./utils/videoDevices";
 import { Application } from "express";
@@ -34,6 +34,7 @@ app.get("/update-apps", (req, res) => {
   try {
     await initConfig();
     await registerVideoDeviceRoutes(app);
+    await registerConfigRoutes(app);
   } catch (e) {
     console.error(e);
   } finally {

@@ -10,6 +10,8 @@ const makeRequestInitialState = (url: string): APIRequest => ({
 });
 
 const InitialAPIReducerState: APIStoreState = {
+  getConfig: makeRequestInitialState("config/get"),
+  setConfigValue: makeRequestInitialState("config/:configKey/set/:configValue"),
   devices: makeRequestInitialState("video-device/list"),
   deviceFormats: makeRequestInitialState("video-device/:deviceId/formats"),
   deviceControls: makeRequestInitialState("video-device/:deviceId/controls"),

@@ -2,14 +2,10 @@ import * as fs from "fs";
 import { listVideoDevices } from "./videoDevices";
 import { MILLISECONDS_IN_SECOND, timeout } from "../common/time";
 import { CONFIG_FILE } from "../common/constants";
-import { JsonObject } from "../common/json";
 import { writeJsonAsync, readJsonAsync } from "./files";
 import { Application } from "express";
-
-interface Config extends JsonObject {
-  captureDevice: string;
-  controlsDevice: string;
-}
+import { decode } from "../common/encode";
+import { Config } from "../common/types";
 
 let config: Config | undefined;
 
@@ -29,7 +25,10 @@ export const getConfig = async () => {
   return config;
 };
 
-export const setConfig = async <K extends keyof Config>(k: K, v: Config[K]) => {
+export const setConfigValue = async <K extends keyof Config>(
+  k: K,
+  v: Config[K],
+) => {
   config[k] = v;
   await writeJsonAsync(CONFIG_FILE, config);
 };
@@ -49,18 +48,10 @@ export const registerConfigRoutes = async (app: Application) => {
     res.send(JSON.stringify(c));
   });
 
-  app.get("/config/:configKey/get", async (req, res) => {
-    const configKey = decodeURIComponent(req.params.configKey) as keyof Config;
-    const c = await getConfig();
-    res.send(JSON.stringify(c[configKey]));
-  });
-
   app.get("/config/:configKey/set/:configValue", async (req, res) => {
-    const configKey = decodeURIComponent(req.params.configKey) as keyof Config;
-    const configValue = decodeURIComponent(
-      req.params.configValue,
-    ) as Config[keyof Config];
-    await setConfig(configKey, configValue);
+    const configKey = decode(req.params.configKey) as keyof Config;
+    const configValue = decode(req.params.configValue) as Config[keyof Config];
+    await setConfigValue(configKey, configValue);
     res.send(JSON.stringify(true));
   });
 };
