@@ -1,9 +1,9 @@
 import { Application } from "express";
 import { decode } from "../common/encode";
 
-// @ts-ignore
+// tslint:disable-next-line:no-var-requires
 const v4l2camera = require("@hypersolution/v4l2camera");
-// @ts-ignore
+// tslint:disable-next-line:no-var-requires
 const NodeWebcam = require("node-webcam");
 
 export const listVideoDevices = async (): Promise<string[]> => {
@@ -22,7 +22,6 @@ export const getOrCreateV4LCameraDevice = (deviceId: string) => {
     return v4lDevices[deviceId];
   }
 
-  // @ts-ignore
   const cam = new v4l2camera.Camera(deviceId);
   v4lDevices[deviceId] = cam;
   return cam;
@@ -42,7 +41,6 @@ export const getOrCreateNodeWebcamDevice = (deviceId: string) => {
     callbackReturn: "buffer",
   };
 
-  // @ts-ignore
   const cam = NodeWebcam.create(opts);
   nodeWebcamDevices[deviceId] = cam;
   return cam;
