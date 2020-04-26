@@ -38,7 +38,7 @@ const DeviceConfigSelector = ({
 }: Props) => {
   React.useEffect(() => {
     onFetchDevices();
-  }, []);
+  }, [onFetchDevices]);
 
   if (!devices.length) {
     return null;

@@ -1,10 +1,10 @@
 import React from "react";
 import { connect, ConnectedProps } from "react-redux";
+import { encode } from "../common/encode";
 import { RootState } from "../redux";
 import { apiCall } from "../redux/api/actions";
-import Debug from "../utils/debug";
 import { BASE_URL } from "../utils/api";
-import { encode } from "../common/encode";
+import Debug from "../utils/debug";
 
 const mapState = (state: RootState) => ({
   deviceFormats: state.api.deviceFormats.value,
@@ -38,12 +38,12 @@ const VideoDevice = ({
   React.useEffect(() => {
     onFetchDeviceFormats(deviceId);
     onFetchDeviceControls(deviceId);
-  }, []);
+  }, [deviceId, onFetchDeviceFormats, onFetchDeviceControls]);
 
   return (
     <div>
-      <img src={`${BASE_URL}/video-device/${encode(deviceId)}/snapshot.jpg`} />
-      <Debug d={{ deviceFormats, deviceControls }} />
+      <img src={`${BASE_URL}/video-device/${encode(deviceId)}/stream.mjpg`} />
+      {/* <Debug d={{ deviceFormats, deviceControls }} /> */}
     </div>
   );
 };

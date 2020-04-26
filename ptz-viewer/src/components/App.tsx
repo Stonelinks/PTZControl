@@ -14,6 +14,8 @@ const { Match, MatchFirst, Link } = require("react-location");
 const mapState = (state: RootState) => ({
   devices: state.api.devices.value,
   deviceFormats: state.api.deviceFormats.value,
+  captureDevice: state.api.getConfig?.value?.captureDevice,
+  controlsDevice: state.api.getConfig?.value?.controlsDevice,
 });
 
 const mapDispatch = {
@@ -34,7 +36,12 @@ enum CONNECTIVITY_STATE {
   disconnected = "Disconnected",
 }
 
-const App = ({ devices, onFetchDevices }: Props) => {
+const App = ({
+  devices,
+  onFetchDevices,
+  captureDevice,
+  controlsDevice,
+}: Props) => {
   const [connectivityState, setConnectivityState] = React.useState(
     CONNECTIVITY_STATE.unknown,
   );
@@ -59,7 +66,7 @@ const App = ({ devices, onFetchDevices }: Props) => {
           break;
       }
     })();
-  }, [connectivityState]);
+  }, [connectivityState, onFetchDevices]);
 
   return (
     <div>
@@ -71,7 +78,9 @@ const App = ({ devices, onFetchDevices }: Props) => {
             </div>
           </div>
           <ConfigEditor />
-          {devices &&
+          {captureDevice && <VideoDevice deviceId={captureDevice} />}
+
+          {/* {devices &&
             devices.length &&
             devices.map((deviceId: string) => (
               <div
@@ -87,14 +96,14 @@ const App = ({ devices, onFetchDevices }: Props) => {
                   <h2>{deviceId}</h2>
                 </Link>
               </div>
-            ))}
-          <MatchFirst>
+            ))} */}
+          {/* <MatchFirst>
             <Match path=":deviceId">
               {({ deviceId }: { deviceId: string }) => (
                 <VideoDevice deviceId={decode(deviceId)} />
               )}
             </Match>
-          </MatchFirst>
+          </MatchFirst> */}
           {/* <PaginationControls
                 currPage={currPage}
                 setCurrPage={setCurrPage}

@@ -24,7 +24,7 @@ type Props = PropsFromRedux & OwnProps;
 const ConfigEditor = ({ config, onGetConfig }: Props) => {
   React.useEffect(() => {
     onGetConfig();
-  }, []);
+  }, [onGetConfig]);
 
   const deviceConfigKeys: { displayText: string; configKey: keyof Config }[] = [
     { configKey: "captureDevice", displayText: "Capture device" },
