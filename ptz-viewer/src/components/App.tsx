@@ -5,6 +5,8 @@ import { apiCall } from "../redux/api/actions";
 import { apiFetch } from "../utils/api";
 import { reload } from "../utils/url";
 import ConfigEditor from "./ConfigEditor";
+import { encode, decode } from "../common/encode";
+import VideoDevice from "./VideoDevice";
 
 // tslint:disable-next-line:no-var-requires
 const { Match, MatchFirst, Link } = require("react-location");
@@ -69,31 +71,27 @@ const App = ({ devices, onFetchDevices }: Props) => {
             </div>
           </div>
           <ConfigEditor />
-          {/* <Debug d={{ devices }} />
           {devices &&
             devices.length &&
-            devices
-              .map((d: string) => encode(d))
-              .map((deviceId: string) => (
-                <div
-                  key={deviceId}
-                  style={{ display: "inline-block", paddingRight: "10px" }}
+            devices.map((deviceId: string) => (
+              <div
+                key={deviceId}
+                style={{ display: "inline-block", paddingRight: "10px" }}
+              >
+                <Link
+                  to={`/${encode(deviceId)}`}
+                  getActiveProps={(location: string) => ({
+                    style: { color: "blue" },
+                  })}
                 >
-                  <Link
-                    to={`/${deviceId}`}
-                    getActiveProps={(location: string) => ({
-                      style: { color: "blue" },
-                    })}
-                  >
-                    <h2>{deviceId}</h2>
-                  </Link>
-                </div>
-              ))}
-
+                  <h2>{deviceId}</h2>
+                </Link>
+              </div>
+            ))}
           <MatchFirst>
             <Match path=":deviceId">
               {({ deviceId }: { deviceId: string }) => (
-                <VideoDevice deviceId={deviceId} />
+                <VideoDevice deviceId={decode(deviceId)} />
               )}
             </Match>
           </MatchFirst>
