@@ -9,11 +9,17 @@ if [ ! -f opt/node$NODE_VERSION/bin/node ]; then
   mkdir -p opt/node$NODE_VERSION
   tar -C opt/node$NODE_VERSION -xzf $NODE_TMP_PATH --strip-components 1
   rm $NODE_TMP_PATH
-
-  echo "Resetting node_modules."
-  rm -rf node_modules/
 fi
-echo
+
+echo "Checking if we have yarn $YARN_VERSION."
+if [ ! -f opt/node$YARN_VERSION/bin/yarn ]; then
+  YARN_DOWNLOAD_URL=https://github.com/yarnpkg/yarn/releases/download/v$YARN_VERSION/yarn-v$YARN_VERSION.tar.gz
+  YARN_TMP_PATH=/tmp/yarn$YARN_VERSION.tar.gz
+  curl -fsSL "$YARN_DOWNLOAD_URL" -o $YARN_TMP_PATH
+  mkdir -p opt/yarn$YARN_VERSION
+  tar -C opt/yarn$YARN_VERSION -xzf $YARN_TMP_PATH --strip-components 1
+  rm $YARN_TMP_PATH
+fi
 
 yarn reset
 

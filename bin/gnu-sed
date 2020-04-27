@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 case $OS in
-macos)
+darwin)
 	if ! command -v gsed > /dev/null ; then
 		echo "Use homebrew to install gnu-sed, or run troy-setup"
 		exit 1
