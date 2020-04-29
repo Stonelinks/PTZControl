@@ -42,6 +42,7 @@
     "tslint-microsoft-contrib": "^6.2.0",
     "tslint-react-hooks": "^2.2.1",
     "typescript": "^3.7.4",
+    "usb": "^1.6.3",
     "v4l2camera": "Williangalvani/node-v4l2camera"
   }
 }
