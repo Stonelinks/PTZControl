@@ -15,15 +15,10 @@ if [ ! -f opt/node$NODE_VERSION/bin/node ]; then
 fi
 echo
 
-yarn
-cd ptz-viewer
-yarn
+yarn reset
 
 # https://www.npmjs.com/package/node-webcam#install
 case $OS in
-macos)
-  brew install imagesnap
-;;
 linux)
-  sudo apt-get install fswebcam
+  sudo apt-get install libv4l-dev
 esac
