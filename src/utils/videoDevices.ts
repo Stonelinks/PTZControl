@@ -84,9 +84,16 @@ interface Cam {
   stop: (cb: () => void) => void;
 }
 
+enum InitState {
+  none,
+  inProgress,
+  done,
+}
+
 interface CameraDeviceState {
   cam: Cam;
   emitter: EventEmitter;
+  initState: InitState;
   isOn: boolean;
   latestFrame?: Buffer;
 }
@@ -100,25 +107,58 @@ export const getOrCreateCameraDevice = (
   }
 
   const cam = new v4l2camera.Camera(deviceId) as Cam;
-  const r = { cam, isOn: false, emitter: new EventEmitter() };
+  const r = {
+    cam,
+    isOn: false,
+    initState: InitState.none,
+    emitter: new EventEmitter(),
+  };
   cameraDevices[deviceId] = r;
   return r;
 };
 
 export const start = async (deviceId: string): Promise<void> => {
-  const { cam, isOn } = getOrCreateCameraDevice(deviceId);
+  const { cam, isOn, initState } = getOrCreateCameraDevice(deviceId);
   if (isOn) {
     return Promise.resolve();
   }
-  return new Promise(res => {
-    const f = autoSelectFormat(cam);
-    const fps = getFps(f);
-    const fpsMs = fpsToMs(fps);
-    cam.configSet(f);
+  return new Promise(async res => {
+    switch (initState) {
+      case InitState.none:
+        cameraDevices[deviceId].initState = InitState.inProgress;
+
+        // autoset format
+        const f = autoSelectFormat(cam);
+        cam.configSet(f);
+
+        // init pan and tilt
+        await centerAxis(cam, "tilt", true);
+        await centerAxis(cam, "pan");
+
+        cameraDevices[deviceId].initState = InitState.done;
+
+        break;
+      case InitState.inProgress:
+        // wait while camera initializes
+        let latestInitState: InitState = initState;
+        while (latestInitState !== InitState.done) {
+          console.log("another init already in progress, waiting");
+          const { initState: iState } = getOrCreateCameraDevice(deviceId);
+          latestInitState = iState;
+          await timeout(300);
+        }
+        break;
+
+      case InitState.done:
+      default:
+        break;
+    }
 
     cam.start();
     cameraDevices[deviceId].isOn = true;
     res();
+
+    const fpsMs = fpsToMs(getFps(cam.configGet()));
 
     const captureOnce = () => {
       cam.capture(success => {
@@ -184,6 +224,53 @@ const autoSelectFormat = (cam: Cam) => {
   });
 
   return largestFormat;
+};
+
+const getControl = (cam: Cam, searchString: string) => {
+  const searchTokens = searchString.split(" ");
+
+  // tslint:disable-next-line:prefer-for-of
+  for (let i = 0; i < cam.controls.length; i++) {
+    const control = cam.controls[i];
+    let include = true;
+
+    searchTokens.forEach(token => {
+      include =
+        include && control.name.toLowerCase().includes(token.toLowerCase());
+    });
+
+    if (include) {
+      return control;
+    }
+  }
+};
+
+const centerAxis = async (cam: Cam, axis: string, backwards = false) => {
+  const speedControl = getControl(cam, `${axis} speed`);
+  const relControl = getControl(cam, `${axis} relative`);
+
+  // move camera to extremes
+  console.log(`move ${axis} to min`);
+  cam.controlSet(speedControl.id, -1);
+  await timeout(10 * MILLISECONDS_IN_SECOND);
+  console.log(`stop ${axis}`);
+  cam.controlSet(speedControl.id, 0);
+  await timeout(2 * MILLISECONDS_IN_SECOND);
+  console.log(`move ${axis} to center`);
+  const numSteps = 3;
+  for (let i = 0; i < numSteps + 1; i++) {
+    console.log(`step ${i}`);
+    cam.controlSet(
+      relControl.id,
+      ((backwards ? -1 : 1) * relControl.max) / numSteps,
+    );
+    await timeout(2 * MILLISECONDS_IN_SECOND);
+  }
+  cam.controlSet(
+    relControl.id,
+    ((backwards ? -1 : 1) * relControl.max) / (2 * numSteps),
+  );
+  await timeout(2 * MILLISECONDS_IN_SECOND);
 };
 
 export const registerVideoDeviceRoutes = async (app: Application) => {

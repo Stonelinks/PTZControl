@@ -56,7 +56,9 @@ const DeviceConfigSelector = ({
         {displayText}
         <select value={configValue} onChange={handleChange}>
           {devices.map(d => (
-            <option value={d}>{d}</option>
+            <option key={d} value={d}>
+              {d}
+            </option>
           ))}
         </select>
       </label>

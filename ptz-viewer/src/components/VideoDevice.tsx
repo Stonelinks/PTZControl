@@ -43,7 +43,8 @@ const VideoDevice = ({
   return (
     <div>
       <img src={`${BASE_URL}/video-device/${encode(deviceId)}/stream.mjpg`} />
-      {/* <Debug d={{ deviceFormats, deviceControls }} /> */}
+      {/* <img src={`${BASE_URL}/video-device/${encode(deviceId)}/snapshot.jpg`} /> */}
+      <Debug d={{ deviceControls }} />
     </div>
   );
 };
