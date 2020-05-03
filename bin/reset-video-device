@@ -1,4 +1,4 @@
 #!/bin/sh
 set -ex
 
-sudo $PROJECT_ROOT/opt/node$NODE_VERSION/bin/node $PROJECT_ROOT/bin/reset-video-device.js "$@"
+node $PROJECT_ROOT/bin/reset-video-device.js "$@"

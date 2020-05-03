@@ -118,41 +118,12 @@ export const getOrCreateCameraDevice = (
 };
 
 export const start = async (deviceId: string): Promise<void> => {
-  const { cam, isOn, initState } = getOrCreateCameraDevice(deviceId);
+  const { cam, isOn } = getOrCreateCameraDevice(deviceId);
   if (isOn) {
     return Promise.resolve();
   }
   return new Promise(async res => {
-    switch (initState) {
-      case InitState.none:
-        cameraDevices[deviceId].initState = InitState.inProgress;
-
-        // autoset format
-        const f = autoSelectFormat(cam);
-        cam.configSet(f);
-
-        // init pan and tilt
-        await centerAxis(cam, "tilt", true);
-        await centerAxis(cam, "pan");
-
-        cameraDevices[deviceId].initState = InitState.done;
-
-        break;
-      case InitState.inProgress:
-        // wait while camera initializes
-        let latestInitState: InitState = initState;
-        while (latestInitState !== InitState.done) {
-          console.log("another init already in progress, waiting");
-          const { initState: iState } = getOrCreateCameraDevice(deviceId);
-          latestInitState = iState;
-          await timeout(300);
-        }
-        break;
-
-      case InitState.done:
-      default:
-        break;
-    }
+    await initCamera(deviceId);
 
     cam.start();
     cameraDevices[deviceId].isOn = true;
@@ -271,6 +242,40 @@ const centerAxis = async (cam: Cam, axis: string, backwards = false) => {
     ((backwards ? -1 : 1) * relControl.max) / (2 * numSteps),
   );
   await timeout(2 * MILLISECONDS_IN_SECOND);
+};
+
+const initCamera = async (deviceId: string) => {
+  const { cam, initState } = getOrCreateCameraDevice(deviceId);
+  switch (initState) {
+    case InitState.none:
+      cameraDevices[deviceId].initState = InitState.inProgress;
+
+      // autoset format
+      const f = autoSelectFormat(cam);
+      cam.configSet(f);
+
+      // init pan and tilt
+      await centerAxis(cam, "tilt", true);
+      await centerAxis(cam, "pan");
+
+      cameraDevices[deviceId].initState = InitState.done;
+
+      break;
+    case InitState.inProgress:
+      // wait while camera initializes
+      let latestInitState: InitState = initState;
+      while (latestInitState !== InitState.done) {
+        console.log("another init already in progress, waiting");
+        const { initState: iState } = getOrCreateCameraDevice(deviceId);
+        latestInitState = iState;
+        await timeout(300);
+      }
+      break;
+
+    case InitState.done:
+    default:
+      break;
+  }
 };
 
 export const registerVideoDeviceRoutes = async (app: Application) => {
