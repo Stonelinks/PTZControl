@@ -3,7 +3,6 @@ import { Application } from "express";
 import { decode } from "../common/encode";
 import { timeout, MILLISECONDS_IN_SECOND } from "../common/time";
 import { EventEmitter } from "events";
-import { resetVideoUsbDevice as DEPRECATED_resetVideoUsbDevice } from "./usb";
 import * as NanoTimer from "nanotimer";
 
 const timer = new NanoTimer();
@@ -89,9 +88,9 @@ interface Cam {
 }
 
 enum InitState {
-  none,
-  inProgress,
-  done,
+  none = "none",
+  inProgress = "inProgress",
+  done = "done",
 }
 
 interface CameraDeviceState {
@@ -126,34 +125,74 @@ export const getOrCreateCameraDevice = (
 export const start = async (deviceId: string): Promise<void> => {
   // await DEPRECATED_resetVideoUsbDevice(deviceId);
 
-  const { cam, isOn } = getOrCreateCameraDevice(deviceId);
+  const { cam, isOn, initState } = getOrCreateCameraDevice(deviceId);
   if (isOn) {
     return Promise.resolve();
   }
+
   return new Promise(async res => {
-    await initCamera(deviceId);
+    switch (initState) {
+      case InitState.none:
+        cameraDevices[deviceId].initState = InitState.inProgress;
 
-    cam.start();
-    cameraDevices[deviceId].isOn = true;
-    res();
+        // autoset format
+        const f = autoSelectFormat(cam);
+        cam.configSet(f);
 
-    const fpsMs = fpsToMs(getFps(cam.configGet()));
-
-    const captureOnce = () => {
-      cam.capture(success => {
-        const frame = cam.frameRaw();
-        const frameBuffer = new Buffer(frame);
-        cameraDevices[deviceId].lastFrame = frameBuffer;
-        cameraDevices[deviceId].emitter.emit("frame", frameBuffer);
-
-        if (cameraDevices[deviceId].isOn) {
-          setTimeout(captureOnce, fpsMs);
-        } else {
-          cam.stop(() => {});
+        // set zoom
+        const zoomAbsControl = getControl(cam, `zoom absolute`);
+        if (zoomAbsControl) {
+          cam.controlSet(zoomAbsControl.id, getZoomInfo(cam).default);
+          await timeout(MILLISECONDS_IN_SECOND);
         }
-      });
-    };
-    captureOnce();
+
+        // init pan and tilt
+        // await centerAxis(cam, "tilt", true);
+        // await centerAxis(cam, "pan");
+
+        cam.start();
+        const fpsMs = fpsToMs(getFps(cam.configGet()));
+
+        const captureOnce = (extraCb?: () => void) => {
+          cam.capture(success => {
+            const frame = cam.frameRaw();
+            const frameBuffer = new Buffer(frame);
+            cameraDevices[deviceId].lastFrame = frameBuffer;
+            if (extraCb) {
+              extraCb();
+            }
+            cameraDevices[deviceId].emitter.emit("frame", frameBuffer);
+
+            if (cameraDevices[deviceId].isOn) {
+              setTimeout(captureOnce, fpsMs);
+            } else {
+              cam.stop(() => {});
+            }
+          });
+        };
+        captureOnce(() => {
+          cameraDevices[deviceId].isOn = true;
+          cameraDevices[deviceId].initState = InitState.done;
+          res();
+        });
+
+        break;
+      case InitState.inProgress:
+        // wait while camera initializes
+        let latestInitState: InitState = initState;
+        while (latestInitState !== InitState.done) {
+          console.log("another init already in progress, waiting");
+          const { initState: iState } = getOrCreateCameraDevice(deviceId);
+          latestInitState = iState;
+          await timeout(300);
+        }
+        res();
+        break;
+
+      case InitState.done:
+      default:
+        break;
+    }
   });
 };
 
@@ -260,47 +299,6 @@ const assertCameraIsOn = async (deviceId: string) => {
   }
 };
 
-const initCamera = async (deviceId: string) => {
-  const { cam, initState } = getOrCreateCameraDevice(deviceId);
-  switch (initState) {
-    case InitState.none:
-      cameraDevices[deviceId].initState = InitState.inProgress;
-
-      // autoset format
-      const f = autoSelectFormat(cam);
-      cam.configSet(f);
-
-      // set zoom
-      const zoomAbsControl = getControl(cam, `zoom absolute`);
-      if (zoomAbsControl) {
-        cam.controlSet(zoomAbsControl.id, getZoomInfo(cam).default);
-        await timeout(MILLISECONDS_IN_SECOND);
-      }
-
-      // init pan and tilt
-      // await centerAxis(cam, "tilt", true);
-      // await centerAxis(cam, "pan");
-
-      cameraDevices[deviceId].initState = InitState.done;
-
-      break;
-    case InitState.inProgress:
-      // wait while camera initializes
-      let latestInitState: InitState = initState;
-      while (latestInitState !== InitState.done) {
-        console.log("another init already in progress, waiting");
-        const { initState: iState } = getOrCreateCameraDevice(deviceId);
-        latestInitState = iState;
-        await timeout(300);
-      }
-      break;
-
-    case InitState.done:
-    default:
-      break;
-  }
-};
-
 const getZoomInfo = (cam: Cam) => {
   const zoomControl = getControl(cam, `zoom absolute`);
   return zoomControl
@@ -361,7 +359,6 @@ const moveAxisSteps = async (
   direction: "up" | "down" | "left" | "right",
   steps = 1,
 ) => {
-  // await assertCameraIsOn(cam.device);
   return new Promise(res => {
     moveAxisSpeedStart(cam, axis, direction);
 
@@ -432,9 +429,6 @@ export const registerVideoDeviceRoutes = async (app: Application) => {
       const axis = decode(req.params.axis) as any;
       const direction = decode(req.params.direction) as any;
 
-      // await assertCameraIsOn(deviceId);
-      console.log(cam.device, axis, direction);
-
       const { cam } = getOrCreateCameraDevice(deviceId);
       moveAxisRelative(cam, axis, direction, 128);
       await timeout(2 * MILLISECONDS_IN_SECOND);
@@ -488,8 +482,6 @@ export const registerVideoDeviceRoutes = async (app: Application) => {
       const axis = decode(req.params.axis) as any;
       const direction = decode(req.params.direction) as any;
 
-      // await assertCameraIsOn(deviceId);
-
       const { cam } = getOrCreateCameraDevice(deviceId);
       moveAxisSpeedStart(cam, axis, direction);
 
@@ -502,8 +494,6 @@ export const registerVideoDeviceRoutes = async (app: Application) => {
     async (req, res) => {
       const deviceId = decode(req.params.deviceId);
       const axis = decode(req.params.axis) as any;
-
-      // await assertCameraIsOn(deviceId);
 
       const { cam } = getOrCreateCameraDevice(deviceId);
       moveAxisSpeedStop(cam, axis);
