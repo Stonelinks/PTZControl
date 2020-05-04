@@ -23,7 +23,7 @@
     "setup": "yarn && cd ptz-viewer && yarn",
     "sync-common": "sync-common",
     "start-server": "ts-node src/server.ts",
-    "start": "yarn setup && yarn sync-common && yarn build && concurrently \"yarn start-server\" \"python -m webbrowser http://localhost:1302\""
+    "start": "yarn setup && yarn sync-common && yarn build && concurrently \"yarn start-server\" \"python -m webbrowser http://localhost:4001\""
   },
   "prettier": {
     "trailingComma": "all"
