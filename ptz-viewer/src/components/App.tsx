@@ -5,8 +5,8 @@ import { apiCall } from "../redux/api/actions";
 import { apiFetch } from "../utils/api";
 import { reload } from "../utils/url";
 import ConfigEditor from "./ConfigEditor";
-import { encode, decode } from "../common/encode";
-import VideoDevice from "./VideoDevice";
+import VideoDeviceControl from "./VideoDeviceControl";
+import VideoDeviceViewer from "./VideoDeviceViewer";
 
 // tslint:disable-next-line:no-var-requires
 const { Match, MatchFirst, Link } = require("react-location");
@@ -78,7 +78,15 @@ const App = ({
             </div>
           </div>
           <ConfigEditor />
-          {captureDevice && <VideoDevice deviceId={captureDevice} />}
+          {captureDevice ? (
+            <VideoDeviceViewer deviceId={captureDevice} key={captureDevice} />
+          ) : null}
+          {controlsDevice ? (
+            <VideoDeviceControl
+              deviceId={controlsDevice}
+              key={controlsDevice}
+            />
+          ) : null}
 
           {/* {devices &&
             devices.length &&

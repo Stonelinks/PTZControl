@@ -1,13 +1,10 @@
 import throttle from "lodash.throttle";
+import * as mousetrap from "mousetrap";
 import React from "react";
 import { connect, ConnectedProps } from "react-redux";
-import { encode } from "../common/encode";
+import { MILLISECONDS_IN_SECOND } from "../common/time";
 import { RootState } from "../redux";
 import { apiCall } from "../redux/api/actions";
-import { BASE_URL } from "../utils/api";
-import Debug from "../utils/debug";
-import * as mousetrap from "mousetrap";
-import { MILLISECONDS_IN_SECOND } from "../common/time";
 
 const mapState = (state: RootState) => ({
   getDeviceFormats: state.api.getDeviceFormats.value,
@@ -45,7 +42,7 @@ interface OwnProps {
 
 type Props = PropsFromRedux & OwnProps;
 
-const VideoDevice = ({
+const VideoDeviceControl = ({
   deviceId,
   getDeviceFormats,
   onGetDeviceFormats,
@@ -56,10 +53,10 @@ const VideoDevice = ({
   onSetDeviceSpeedControlStart,
   onSetDeviceSpeedControlStop,
 }: Props) => {
-  React.useEffect(() => {
-    onGetDeviceFormats(deviceId);
-    onGetDeviceControls(deviceId);
-  }, [deviceId, onGetDeviceFormats, onGetDeviceControls]);
+  // React.useEffect(() => {
+  //   onGetDeviceFormats(deviceId);
+  //   onGetDeviceControls(deviceId);
+  // }, [deviceId, onGetDeviceFormats, onGetDeviceControls]);
 
   React.useEffect(() => {
     console.log("mounted");
@@ -127,16 +124,7 @@ const VideoDevice = ({
     };
   }, []);
 
-  return (
-    <div>
-      <img
-        src={`${BASE_URL}/video-device/${encode(deviceId)}/stream.mjpg`}
-        style={{ width: "100%", height: "auto" }}
-      />
-      {/* <img src={`${BASE_URL}/video-device/${encode(deviceId)}/snapshot.jpg`} /> */}
-      <Debug d={{ getDeviceControls }} />
-    </div>
-  );
+  return null;
 };
 
-export default connector(VideoDevice);
+export default connector(VideoDeviceControl);

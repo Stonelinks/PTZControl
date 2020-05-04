@@ -222,6 +222,7 @@ const getControl = (cam: Cam, searchString: string) => {
       return control;
     }
   }
+  return undefined;
 };
 
 const centerAxis = async (cam: Cam, axis: string, backwards = false) => {
@@ -253,7 +254,8 @@ const centerAxis = async (cam: Cam, axis: string, backwards = false) => {
 };
 
 const assertCameraIsOn = async (deviceId: string) => {
-  while (!cameraDevices[deviceId] && cameraDevices[deviceId].isOn) {
+  while (!(cameraDevices[deviceId] && cameraDevices[deviceId].isOn)) {
+    console.log("assertCameraIsOn", deviceId);
     await timeout(500);
   }
 };
@@ -270,8 +272,10 @@ const initCamera = async (deviceId: string) => {
 
       // set zoom
       const zoomAbsControl = getControl(cam, `zoom absolute`);
-      cam.controlSet(zoomAbsControl.id, getZoomInfo(cam).default);
-      await timeout(MILLISECONDS_IN_SECOND);
+      if (zoomAbsControl) {
+        cam.controlSet(zoomAbsControl.id, getZoomInfo(cam).default);
+        await timeout(MILLISECONDS_IN_SECOND);
+      }
 
       // init pan and tilt
       // await centerAxis(cam, "tilt", true);
@@ -299,11 +303,17 @@ const initCamera = async (deviceId: string) => {
 
 const getZoomInfo = (cam: Cam) => {
   const zoomControl = getControl(cam, `zoom absolute`);
-  return {
-    min: zoomControl.min,
-    max: zoomControl.max,
-    default: zoomControl.default,
-  };
+  return zoomControl
+    ? {
+        min: zoomControl.min,
+        max: zoomControl.max,
+        default: zoomControl.default,
+      }
+    : {
+        min: 0,
+        max: 0,
+        default: 0,
+      };
 };
 
 const moveAxisRelative = (
@@ -313,11 +323,13 @@ const moveAxisRelative = (
   amount: number,
 ) => {
   const posRelControl = getControl(cam, `${axis} relative`);
-  console.log(axis, direction, amount);
-  cam.controlSet(
-    posRelControl.id,
-    (direction === "up" || direction === "right" ? 1 : -1) * amount,
-  );
+  if (posRelControl) {
+    console.log(cam.device, axis, direction, amount);
+    cam.controlSet(
+      posRelControl.id,
+      (direction === "up" || direction === "right" ? 1 : -1) * amount,
+    );
+  }
 };
 
 const moveAxisSpeedStart = (
@@ -325,18 +337,22 @@ const moveAxisSpeedStart = (
   axis: "pan" | "tilt",
   direction: "up" | "down" | "left" | "right",
 ) => {
-  console.log(axis, "start", direction);
-  const speed = getControl(cam, `${axis} speed`);
-  cam.controlSet(
-    speed.id,
-    direction === "up" || direction === "right" ? 1 : -1,
-  );
+  const speedControl = getControl(cam, `${axis} speed`);
+  if (speedControl) {
+    console.log(cam.device, axis, "start", direction);
+    cam.controlSet(
+      speedControl.id,
+      direction === "up" || direction === "right" ? 1 : -1,
+    );
+  }
 };
 
 const moveAxisSpeedStop = (cam: Cam, axis: "pan" | "tilt") => {
-  console.log(axis, "stop");
-  const speed = getControl(cam, `${axis} speed`);
-  cam.controlSet(speed.id, 0);
+  const speedControl = getControl(cam, `${axis} speed`);
+  if (speedControl) {
+    console.log(cam.device, axis, "stop");
+    cam.controlSet(speedControl.id, 0);
+  }
 };
 
 const moveAxisSteps = async (
@@ -345,7 +361,7 @@ const moveAxisSteps = async (
   direction: "up" | "down" | "left" | "right",
   steps = 1,
 ) => {
-  await assertCameraIsOn(cam.device);
+  // await assertCameraIsOn(cam.device);
   return new Promise(res => {
     moveAxisSpeedStart(cam, axis, direction);
 
@@ -416,8 +432,8 @@ export const registerVideoDeviceRoutes = async (app: Application) => {
       const axis = decode(req.params.axis) as any;
       const direction = decode(req.params.direction) as any;
 
-      await assertCameraIsOn(deviceId);
-      console.log(axis, direction);
+      // await assertCameraIsOn(deviceId);
+      console.log(cam.device, axis, direction);
 
       const { cam } = getOrCreateCameraDevice(deviceId);
       moveAxisRelative(cam, axis, direction, 128);
@@ -439,26 +455,27 @@ export const registerVideoDeviceRoutes = async (app: Application) => {
 
       const { cam } = getOrCreateCameraDevice(deviceId);
       const zoomAbsControl = getControl(cam, `zoom absolute`);
+      if (zoomAbsControl) {
+        const { min, max } = getZoomInfo(cam);
+        const zoomDelta = (direction === "in" ? 1 : -1) * 10;
+        cameraDevices[deviceId].zoom = cameraDevices[deviceId].zoom + zoomDelta;
 
-      const { min, max } = getZoomInfo(cam);
-      const zoomDelta = (direction === "in" ? 1 : -1) * 10;
-      cameraDevices[deviceId].zoom = cameraDevices[deviceId].zoom + zoomDelta;
+        if (cameraDevices[deviceId].zoom < min) {
+          cameraDevices[deviceId].zoom = min;
+        } else if (cameraDevices[deviceId].zoom > max) {
+          cameraDevices[deviceId].zoom = max;
+        }
 
-      if (cameraDevices[deviceId].zoom < min) {
-        cameraDevices[deviceId].zoom = min;
-      } else if (cameraDevices[deviceId].zoom > max) {
-        cameraDevices[deviceId].zoom = max;
+        console.log(
+          "zoom",
+          direction,
+          cameraDevices[deviceId].zoom,
+          "delta",
+          zoomDelta,
+        );
+
+        cam.controlSet(zoomAbsControl.id, cameraDevices[deviceId].zoom);
       }
-
-      console.log(
-        "zoom",
-        direction,
-        cameraDevices[deviceId].zoom,
-        "delta",
-        zoomDelta,
-      );
-
-      cam.controlSet(zoomAbsControl.id, cameraDevices[deviceId].zoom);
 
       res.send(true);
     },
@@ -471,9 +488,7 @@ export const registerVideoDeviceRoutes = async (app: Application) => {
       const axis = decode(req.params.axis) as any;
       const direction = decode(req.params.direction) as any;
 
-      await assertCameraIsOn(deviceId);
-
-      console.log(axis, direction);
+      // await assertCameraIsOn(deviceId);
 
       const { cam } = getOrCreateCameraDevice(deviceId);
       moveAxisSpeedStart(cam, axis, direction);
@@ -488,9 +503,7 @@ export const registerVideoDeviceRoutes = async (app: Application) => {
       const deviceId = decode(req.params.deviceId);
       const axis = decode(req.params.axis) as any;
 
-      await assertCameraIsOn(deviceId);
-
-      console.log(axis);
+      // await assertCameraIsOn(deviceId);
 
       const { cam } = getOrCreateCameraDevice(deviceId);
       moveAxisSpeedStop(cam, axis);
