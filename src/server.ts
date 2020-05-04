@@ -2,11 +2,12 @@ import * as bodyParser from "body-parser";
 import * as cors from "cors";
 import * as express from "express";
 import { SERVER_PORT, VIEWER_FOLDER, CAPTURE_FOLDER } from "./common/constants";
-import { initConfig, registerConfigRoutes } from "./utils/config";
+import { initConfig } from "./utils/config";
 import { getCron } from "./utils/cron";
-import { registerVideoDeviceRoutes } from "./utils/videoDevices";
 import { Application } from "express";
-import { registerTimelapseRoutes } from "./utils/timelapse";
+import { registerVideoDeviceRoutes } from "./routes/videoDevices";
+import { registerConfigRoutes } from "./routes/config";
+import { registerTimelapseRoutes } from "./routes/timelapse";
 
 const app: Application = express();
 

@@ -69,25 +69,3 @@ export const initConfig = async () => {
     await saveConfig(config);
   }
 };
-
-export const registerConfigRoutes = async (app: Application) => {
-  app.get("/config/get", async (req, res) => {
-    const c = await getConfig();
-    res.send(JSON.stringify(c));
-  });
-
-  app.get("/config/:configKey/set/:configValue", async (req, res) => {
-    const configKey = decode(req.params.configKey) as keyof Config;
-    let configValue = decode(req.params.configValue) as Config[keyof Config];
-    if (configValue === "True") {
-      configValue = true;
-    } else if (configValue === "False") {
-      configValue = false;
-    } else if (isNumeric(configValue as string)) {
-      configValue = parseInt(configValue as string, 10);
-    }
-
-    await setConfigValue(configKey, configValue);
-    res.send(JSON.stringify(true));
-  });
-};
