@@ -14,8 +14,12 @@ export interface APIStoreState {
   getConfig: APIRequest;
   setConfigValue: APIRequest;
   devices: APIRequest;
-  deviceFormats: APIRequest;
-  deviceControls: APIRequest;
+  getDeviceFormats: APIRequest;
+  getDeviceControls: APIRequest;
+  setDevicePositionControl: APIRequest;
+  setDeviceSpeedControlStart: APIRequest;
+  setDeviceSpeedControlStop: APIRequest;
+  setDeviceZoomControl: APIRequest;
 }
 
 export type APIResource = keyof APIStoreState;

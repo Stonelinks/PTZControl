@@ -13,7 +13,7 @@ const { Match, MatchFirst, Link } = require("react-location");
 
 const mapState = (state: RootState) => ({
   devices: state.api.devices.value,
-  deviceFormats: state.api.deviceFormats.value,
+  getDeviceFormats: state.api.getDeviceFormats.value,
   captureDevice: state.api.getConfig?.value?.captureDevice,
   controlsDevice: state.api.getConfig?.value?.controlsDevice,
 });

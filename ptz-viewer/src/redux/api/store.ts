@@ -13,8 +13,20 @@ const InitialAPIReducerState: APIStoreState = {
   getConfig: makeRequestInitialState("config/get"),
   setConfigValue: makeRequestInitialState("config/:configKey/set/:configValue"),
   devices: makeRequestInitialState("video-device/list"),
-  deviceFormats: makeRequestInitialState("video-device/:deviceId/formats"),
-  deviceControls: makeRequestInitialState("video-device/:deviceId/controls"),
+  getDeviceFormats: makeRequestInitialState("video-device/:deviceId/formats"),
+  getDeviceControls: makeRequestInitialState("video-device/:deviceId/controls"),
+  setDevicePositionControl: makeRequestInitialState(
+    "video-device/:deviceId/control/:axis/:direction/position",
+  ),
+  setDeviceSpeedControlStart: makeRequestInitialState(
+    "video-device/:deviceId/control/:axis/:direction/speed/start",
+  ),
+  setDeviceSpeedControlStop: makeRequestInitialState(
+    "video-device/:deviceId/control/:axis/speed/stop",
+  ),
+  setDeviceZoomControl: makeRequestInitialState(
+    "video-device/:deviceId/control/zoom/:direction",
+  ),
 };
 
 const APIStore = (
