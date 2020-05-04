@@ -100,7 +100,7 @@ interface CameraDeviceState {
   initState: InitState;
   isOn: boolean;
   zoom: number;
-  latestFrame?: Buffer;
+  lastFrame?: Buffer;
 }
 
 const cameraDevices: Record<string, CameraDeviceState> = {};
@@ -143,7 +143,7 @@ export const start = async (deviceId: string): Promise<void> => {
       cam.capture(success => {
         const frame = cam.frameRaw();
         const frameBuffer = new Buffer(frame);
-        cameraDevices[deviceId].latestFrame = frameBuffer;
+        cameraDevices[deviceId].lastFrame = frameBuffer;
         cameraDevices[deviceId].emitter.emit("frame", frameBuffer);
 
         if (cameraDevices[deviceId].isOn) {
@@ -167,11 +167,11 @@ export const stop = async (deviceId: string) => {
 export const takeSnapshot = async (deviceId: string): Promise<Buffer> => {
   await start(deviceId);
 
-  while (!cameraDevices[deviceId].latestFrame) {
+  while (!cameraDevices[deviceId].lastFrame) {
     await timeout(50);
   }
 
-  return cameraDevices[deviceId].latestFrame;
+  return cameraDevices[deviceId].lastFrame;
 };
 
 const getFps = (f: Format) => {

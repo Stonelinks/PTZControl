@@ -3,7 +3,7 @@ import * as cors from "cors";
 import * as express from "express";
 import { SERVER_PORT, VIEWER_FOLDER } from "./common/constants";
 import { initConfig, registerConfigRoutes } from "./utils/config";
-import cron from "./utils/cron";
+import { getCron } from "./utils/cron";
 import { registerVideoDeviceRoutes } from "./utils/videoDevices";
 import { Application } from "express";
 
@@ -53,5 +53,6 @@ app.get("/update-apps", (req, res) => {
     });
   }
 
+  const cron = await getCron();
   cron.start();
 })();

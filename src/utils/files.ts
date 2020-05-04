@@ -11,10 +11,11 @@ export const readFileAsync = async (path: string): Promise<string> => {
 
 export const writeFileAsync = async (
   path: string,
-  contents: string,
+  contents: string | Buffer,
 ): Promise<boolean> => {
   return new Promise(async resolve => {
-    fs.writeFile(path, contents.trim() + "\n", () => {
+    const c = typeof contents === "string" ? contents.trim() + "\n" : contents;
+    fs.writeFile(path, c, () => {
       resolve(true);
     });
   });

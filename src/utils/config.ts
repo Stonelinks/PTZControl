@@ -6,6 +6,7 @@ import { writeJsonAsync, readJsonAsync } from "./files";
 import { Application } from "express";
 import { decode } from "../common/encode";
 import { Config } from "../common/types";
+import { isNumeric } from "../common/number";
 
 let config: Config | undefined;
 
@@ -15,6 +16,9 @@ const makeDefaultConfig = async (): Promise<Config> => {
   return {
     captureDevice: firstDevice,
     controlsDevice: firstDevice,
+    captureName: "capture",
+    captureEnable: false,
+    captureRateMs: 5 * MILLISECONDS_IN_SECOND,
   };
 };
 
@@ -30,16 +34,39 @@ export const setConfigValue = async <K extends keyof Config>(
   v: Config[K],
 ) => {
   config[k] = v;
-  await writeJsonAsync(CONFIG_FILE, config);
+  await saveConfig();
+};
+
+const saveConfig = async (c?: Config) => {
+  if (!c) {
+    c = config;
+  }
+
+  console.log("writing config", c);
+  await writeJsonAsync(CONFIG_FILE, c);
 };
 
 export const initConfig = async () => {
   // init a default config
+  const defaultConfig = await makeDefaultConfig();
   if (!fs.existsSync(CONFIG_FILE)) {
-    const defaultConfig = await makeDefaultConfig();
-    await writeJsonAsync(CONFIG_FILE, defaultConfig);
+    await saveConfig(defaultConfig);
   }
   config = await readJsonAsync(CONFIG_FILE);
+
+  let dirty = false;
+  for (const key in defaultConfig) {
+    if (defaultConfig.hasOwnProperty(key)) {
+      const defaultValue = defaultConfig[key];
+      if (!config.hasOwnProperty(key)) {
+        dirty = true;
+        config[key] = defaultValue;
+      }
+    }
+  }
+  if (dirty) {
+    await saveConfig(config);
+  }
 };
 
 export const registerConfigRoutes = async (app: Application) => {
@@ -50,7 +77,15 @@ export const registerConfigRoutes = async (app: Application) => {
 
   app.get("/config/:configKey/set/:configValue", async (req, res) => {
     const configKey = decode(req.params.configKey) as keyof Config;
-    const configValue = decode(req.params.configValue) as Config[keyof Config];
+    let configValue = decode(req.params.configValue) as Config[keyof Config];
+    if (configValue === "True") {
+      configValue = true;
+    } else if (configValue === "False") {
+      configValue = false;
+    } else if (isNumeric(configValue as string)) {
+      configValue = parseInt(configValue as string, 10);
+    }
+
     await setConfigValue(configKey, configValue);
     res.send(JSON.stringify(true));
   });

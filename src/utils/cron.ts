@@ -1,9 +1,10 @@
 import { MILLISECONDS_IN_SECOND, timeout } from "../common/time";
+import { getCaptureCronJob } from "./timelapse";
 
 interface CronJobs {
   name: string;
   intervalMs: number;
-  fn: () => Promise<any> | void;
+  fn: (nowMs: number) => Promise<any> | void;
 }
 
 class Cron {
@@ -35,7 +36,8 @@ class Cron {
       if (shouldRun) {
         this.lastRunMs[i] = nowMs;
         try {
-          await fn();
+          console.log(`cron: running ${name}`);
+          await fn(nowMs);
         } catch (e) {
           console.error(e);
         }
@@ -44,6 +46,7 @@ class Cron {
   }
 }
 
-const c = new Cron([]);
-
-export default c;
+export const getCron = async () => {
+  const capture = await getCaptureCronJob();
+  return new Cron([capture]);
+};
