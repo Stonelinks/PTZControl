@@ -16,6 +16,7 @@ const makeDefaultConfig = async (): Promise<Config> => {
   return {
     captureDevice: firstDevice,
     controlsDevice: firstDevice,
+
     captureName: "capture",
     captureEnable: false,
     captureRateMs: 5 * MILLISECONDS_IN_SECOND,

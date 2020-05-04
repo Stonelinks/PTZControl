@@ -1,15 +1,17 @@
 import * as bodyParser from "body-parser";
 import * as cors from "cors";
 import * as express from "express";
-import { SERVER_PORT, VIEWER_FOLDER } from "./common/constants";
+import { SERVER_PORT, VIEWER_FOLDER, CAPTURE_FOLDER } from "./common/constants";
 import { initConfig, registerConfigRoutes } from "./utils/config";
 import { getCron } from "./utils/cron";
 import { registerVideoDeviceRoutes } from "./utils/videoDevices";
 import { Application } from "express";
+import { registerTimelapseRoutes } from "./utils/timelapse";
 
 const app: Application = express();
 
 app.use(express.static(VIEWER_FOLDER));
+app.use(express.static(CAPTURE_FOLDER));
 
 app.use(cors());
 
@@ -35,6 +37,7 @@ app.get("/update-apps", (req, res) => {
     await initConfig();
     await registerVideoDeviceRoutes(app);
     await registerConfigRoutes(app);
+    await registerTimelapseRoutes(app);
   } catch (e) {
     console.error(e);
   } finally {

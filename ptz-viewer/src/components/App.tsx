@@ -7,6 +7,7 @@ import { reload } from "../utils/url";
 import ConfigEditor from "./ConfigEditor";
 import VideoDeviceControl from "./VideoDeviceControl";
 import VideoDeviceViewer from "./VideoDeviceViewer";
+import CaptureList from "./CaptureList";
 
 // tslint:disable-next-line:no-var-requires
 const { Match, MatchFirst, Link } = require("react-location");
@@ -87,6 +88,7 @@ const App = ({
               key={controlsDevice}
             />
           ) : null}
+          <CaptureList />
 
           {/* {devices &&
             devices.length &&

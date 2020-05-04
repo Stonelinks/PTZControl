@@ -32,3 +32,27 @@ export const writeJsonAsync = async (
 ) => {
   await writeFileAsync(path, JSON.stringify(contents, null, 2));
 };
+
+export const listDirectory = async (path: string): Promise<string[]> => {
+  return new Promise(async (resolve, reject) => {
+    fs.readdir(path, (err, items) => {
+      if (err) {
+        reject(err);
+      } else {
+        resolve(items);
+      }
+    });
+  });
+};
+
+export const stat = async (path: string): Promise<fs.Stats> => {
+  return new Promise(async (resolve, reject) => {
+    fs.stat(path, (err, data) => {
+      if (err) {
+        reject(err);
+      } else {
+        resolve(data);
+      }
+    });
+  });
+};

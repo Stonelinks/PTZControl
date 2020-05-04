@@ -20,6 +20,7 @@ export interface APIStoreState {
   setDeviceSpeedControlStart: APIRequest;
   setDeviceSpeedControlStop: APIRequest;
   setDeviceZoomControl: APIRequest;
+  getCaptureFiles: APIRequest;
 }
 
 export type APIResource = keyof APIStoreState;

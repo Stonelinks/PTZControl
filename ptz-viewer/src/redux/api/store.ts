@@ -27,6 +27,7 @@ const InitialAPIReducerState: APIStoreState = {
   setDeviceZoomControl: makeRequestInitialState(
     "video-device/:deviceId/control/zoom/:direction",
   ),
+  getCaptureFiles: makeRequestInitialState("timelapse/capture/list"),
 };
 
 const APIStore = (
