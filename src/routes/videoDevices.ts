@@ -101,11 +101,11 @@ export const registerVideoDeviceRoutes = async (app: Application) => {
           newZoom = max;
         }
 
-        setCameraDeviceZoom(deviceId, zoom);
+        setCameraDeviceZoom(deviceId, newZoom);
 
-        console.log("zoom", direction, zoom, "delta", zoomDelta);
+        console.log("zoom", direction, newZoom, "delta", zoomDelta);
 
-        cam.controlSet(zoomAbsControl.id, zoom);
+        cam.controlSet(zoomAbsControl.id, newZoom);
       }
 
       res.send(true);
