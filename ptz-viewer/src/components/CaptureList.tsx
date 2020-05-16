@@ -32,11 +32,11 @@ const CaptureList = ({ getCaptureFiles, onGetCaptureFiles }: Props) => {
         getCaptureFiles.map((f: string) => (
           <div
             style={{
-              width: "20%",
-              margin: "-1px",
-              padding: "0.5px",
+              width: "calc(20% - 1px)",
+              margin: "0px -1px -1px 0px",
+              padding: "0px",
               display: "inline-block",
-              border: "0.5px grey solid",
+              border: "1px grey solid",
             }}
           >
             <img
