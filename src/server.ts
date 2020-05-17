@@ -3,7 +3,7 @@ import * as cors from "cors";
 import * as express from "express";
 import { SERVER_PORT, VIEWER_FOLDER, CAPTURE_FOLDER } from "./common/constants";
 import { initConfig } from "./utils/config";
-import { getCron } from "./utils/cron";
+import { cron } from "./utils/cron";
 import { Application } from "express";
 import { registerVideoDeviceRoutes } from "./routes/videoDevices";
 import { registerConfigRoutes } from "./routes/config";
@@ -65,6 +65,5 @@ app.get("/thumb/:imageFilePath", async (req, res) => {
     });
   }
 
-  const cron = await getCron();
   cron.start();
 })();

@@ -11,22 +11,23 @@ export const getCaptureDir = async () => {
   return captureDir;
 };
 
-export const getCaptureCronJob = async () => {
-  const c = await getConfig();
-  return {
-    name: "capture",
-    intervalMs: c.captureRateMs,
-    fn: async nowMs => {
-      if (c.captureEnable) {
-        console.log(`${nowMs}: taking snapshot`);
-        const snapshot = await takeSnapshot(c.captureDevice);
-        const captureDir = await getCaptureDir();
+export const CaptureCronJob = {
+  name: "capture",
+  intervalMs: async () => {
+    const c = await getConfig();
+    return c.captureRateMs;
+  },
+  fn: async nowMs => {
+    const c = await getConfig();
+    if (c.captureEnable) {
+      console.log(`${nowMs}: taking snapshot`);
+      const snapshot = await takeSnapshot(c.captureDevice);
+      const captureDir = await getCaptureDir();
 
-        await writeFileAsync(
-          `${captureDir}/${c.captureName}-${nowMs}.jpg`,
-          snapshot,
-        );
-      }
-    },
-  };
+      await writeFileAsync(
+        `${captureDir}/${c.captureName}-${nowMs}.jpg`,
+        snapshot,
+      );
+    }
+  },
 };

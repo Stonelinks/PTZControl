@@ -1,9 +1,9 @@
 import { MILLISECONDS_IN_SECOND, timeout } from "../common/time";
-import { getCaptureCronJob } from "./timelapse";
+import { CaptureCronJob } from "./timelapse";
 
 interface CronJobs {
   name: string;
-  intervalMs: number;
+  intervalMs: (() => Promise<number>) | number;
   fn: (nowMs: number) => Promise<any> | void;
 }
 
@@ -24,12 +24,20 @@ class Cron {
   async tick() {
     for (let i = 0; i < this.jobs.length; i++) {
       const { intervalMs, fn, name } = this.jobs[i];
+
+      let iMs: number = 100;
+      if (typeof intervalMs === "function") {
+        iMs = await intervalMs();
+      } else if (typeof intervalMs === "number") {
+        iMs = intervalMs;
+      }
+
       const lastRunMs = this.lastRunMs[i];
       const nowMs = Date.now();
       let shouldRun = false;
       if (!lastRunMs) {
         shouldRun = true;
-      } else if (lastRunMs + intervalMs < nowMs) {
+      } else if (lastRunMs + iMs < nowMs) {
         shouldRun = true;
       }
 
@@ -46,7 +54,4 @@ class Cron {
   }
 }
 
-export const getCron = async () => {
-  const capture = await getCaptureCronJob();
-  return new Cron([capture]);
-};
+export const cron = new Cron([CaptureCronJob]);
