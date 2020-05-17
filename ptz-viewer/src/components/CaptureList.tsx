@@ -3,6 +3,7 @@ import { connect, ConnectedProps } from "react-redux";
 import { RootState } from "../redux";
 import { apiCall } from "../redux/api/actions";
 import { BASE_URL } from "../utils/api";
+import { encode } from "../common/encode";
 
 const mapState = (state: RootState) => ({
   getCaptureFiles: state.api.getCaptureFiles.value,
@@ -40,7 +41,7 @@ const CaptureList = ({ getCaptureFiles, onGetCaptureFiles }: Props) => {
             }}
           >
             <img
-              src={`${BASE_URL}/${f}`}
+              src={`${BASE_URL}/thumb/${encode(f)}`}
               style={{ width: "100%", height: "auto" }}
             />
             <pre style={{ textAlign: "center" }}>{f}</pre>

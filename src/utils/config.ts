@@ -1,12 +1,9 @@
 import * as fs from "fs";
-import { listVideoDevices } from "./videoDevices";
-import { MILLISECONDS_IN_SECOND, timeout } from "../common/time";
 import { CONFIG_FILE } from "../common/constants";
-import { writeJsonAsync, readJsonAsync } from "./files";
-import { Application } from "express";
-import { decode } from "../common/encode";
+import { MILLISECONDS_IN_SECOND, timeout } from "../common/time";
 import { Config } from "../common/types";
-import { isNumeric } from "../common/number";
+import { readJsonAsync, writeJsonAsync } from "./files";
+import { listVideoDevices } from "./videoDevices";
 
 let config: Config | undefined;
 

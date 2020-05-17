@@ -8,6 +8,8 @@ import { Application } from "express";
 import { registerVideoDeviceRoutes } from "./routes/videoDevices";
 import { registerConfigRoutes } from "./routes/config";
 import { registerTimelapseRoutes } from "./routes/timelapse";
+import { getThumbnail } from "./utils/images";
+import { decode } from "./common/encode";
 
 const app: Application = express();
 
@@ -31,6 +33,12 @@ let shouldRestart = true;
 app.get("/update-apps", (req, res) => {
   res.send(JSON.stringify({ shouldRestart }));
   shouldRestart = false;
+});
+
+app.get("/thumb/:imageFilePath", async (req, res) => {
+  const imageFilePath = decode(req.params.imageFilePath);
+  const thumbPath = await getThumbnail(imageFilePath);
+  res.sendFile(thumbPath);
 });
 
 (async () => {
