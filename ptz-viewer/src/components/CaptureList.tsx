@@ -1,16 +1,18 @@
+import moment from "moment";
 import React from "react";
 import { connect, ConnectedProps } from "react-redux";
 import { RootState } from "../redux";
 import { apiCall } from "../redux/api/actions";
-import { BASE_URL } from "../utils/api";
-import { encode } from "../common/encode";
+
+// tslint:disable-next-line:no-var-requires
+const { Link } = require("react-location");
 
 const mapState = (state: RootState) => ({
-  getCaptureFiles: state.api.getCaptureFiles.value,
+  getCaptures: state.api.getCaptures.value,
 });
 
 const mapDispatch = {
-  onGetCaptureFiles: () => apiCall("getCaptureFiles"),
+  onGetCaptures: () => apiCall("getCaptures"),
 };
 
 const connector = connect(mapState, mapDispatch);
@@ -21,35 +23,56 @@ interface OwnProps {}
 
 type Props = PropsFromRedux & OwnProps;
 
-const CaptureList = ({ getCaptureFiles, onGetCaptureFiles }: Props) => {
+const CaptureFileList = ({ getCaptures, onGetCaptures }: Props) => {
   React.useEffect(() => {
-    onGetCaptureFiles();
-  }, [onGetCaptureFiles]);
+    onGetCaptures();
+  }, [onGetCaptures]);
 
   return (
     <div>
-      {getCaptureFiles &&
-        getCaptureFiles.length &&
-        getCaptureFiles.map((f: string) => (
-          <div
-            style={{
-              width: "calc(20% - 1px)",
-              margin: "0px -1px -1px 0px",
-              padding: "0px",
-              display: "inline-block",
-              border: "1px grey solid",
-            }}
-          >
-            <img
-              src={`${BASE_URL}/thumb/${encode(f)}`}
-              style={{ width: "100%", height: "auto" }}
-            />
-            <pre style={{ textAlign: "center" }}>{f}</pre>
-          </div>
-        ))}
-      {/* <Debug d={getCaptureFiles} /> */}
+      {getCaptures &&
+        getCaptures.length &&
+        getCaptures.map(
+          ({
+            name,
+            numFiles,
+            startTimeMs,
+            endTimeMs,
+          }: {
+            name: string;
+            numFiles: number;
+            startTimeMs: number;
+            endTimeMs: number;
+          }) => (
+            <div
+              style={{
+                width: "calc(20% - 1px)",
+                margin: "0px -1px -1px 0px",
+                padding: "0px",
+                display: "inline-block",
+                border: "1px grey solid",
+              }}
+            >
+              <Link to={`/capture/${name}`}>
+                <pre style={{ textAlign: "center", fontWeight: "bold" }}>
+                  {name}
+                </pre>
+                <pre style={{ textAlign: "center" }}>
+                  {[
+                    `${numFiles} files`,
+                    `Duration: ${moment
+                      .duration(endTimeMs - startTimeMs)
+                      .humanize()}`,
+                    `Start: ${moment(startTimeMs).format("M/D/YY H:mma")}`,
+                    `End: ${moment(endTimeMs).format("M/D/YY H:mma")}`,
+                  ].join("\n")}
+                </pre>
+              </Link>
+            </div>
+          ),
+        )}
     </div>
   );
 };
 
-export default connector(CaptureList);
+export default connector(CaptureFileList);

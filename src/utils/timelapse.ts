@@ -1,14 +1,21 @@
 import * as shell from "shelljs";
-import { getConfig } from "./config";
-import { takeSnapshot } from "./videoDevices";
-import { writeFileAsync, listDirectory, stat } from "./files";
 import { CAPTURE_FOLDER } from "../common/constants";
+import { getConfig } from "./config";
+import { writeFileAsync } from "./files";
+import { takeSnapshot } from "./videoDevices";
 
 export const getCaptureDir = async () => {
-  const c = await getConfig();
-  const captureDir = `${CAPTURE_FOLDER}/${c.captureName}`;
+  const captureDir = `${CAPTURE_FOLDER}`;
   shell.mkdir("-p", captureDir);
   return captureDir;
+};
+
+export const getActiveCaptureDir = async () => {
+  const captureDir = await getCaptureDir();
+  const c = await getConfig();
+  const activeCaptureDir = `${captureDir}/${c.captureName}`;
+  shell.mkdir("-p", activeCaptureDir);
+  return activeCaptureDir;
 };
 
 export const CaptureCronJob = {
@@ -22,10 +29,10 @@ export const CaptureCronJob = {
     if (c.captureEnable) {
       console.log(`${nowMs}: taking snapshot`);
       const snapshot = await takeSnapshot(c.captureDevice);
-      const captureDir = await getCaptureDir();
+      const activeCaptureDir = await getActiveCaptureDir();
 
       await writeFileAsync(
-        `${captureDir}/${c.captureName}-${nowMs}.jpg`,
+        `${activeCaptureDir}/${c.captureName}-${nowMs}.jpg`,
         snapshot,
       );
     }

@@ -122,7 +122,7 @@ const VideoDeviceControl = ({
       mousetrap.unbind("up");
       mousetrap.unbind("down");
     };
-  }, []);
+  });
 
   return null;
 };

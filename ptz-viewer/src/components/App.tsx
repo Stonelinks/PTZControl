@@ -8,6 +8,8 @@ import ConfigEditor from "./ConfigEditor";
 import VideoDeviceControl from "./VideoDeviceControl";
 import VideoDeviceViewer from "./VideoDeviceViewer";
 import CaptureList from "./CaptureList";
+import NavItem from "./NavItem";
+import CaptureFileList from "./CaptureFileList";
 
 // tslint:disable-next-line:no-var-requires
 const { Match, MatchFirst, Link } = require("react-location");
@@ -78,46 +80,38 @@ const App = ({
               <h1>PTZ Control</h1>
             </div>
           </div>
-          <ConfigEditor />
-          {captureDevice ? (
-            <VideoDeviceViewer deviceId={captureDevice} key={captureDevice} />
-          ) : null}
-          {controlsDevice ? (
-            <VideoDeviceControl
-              deviceId={controlsDevice}
-              key={controlsDevice}
-            />
-          ) : null}
-          <CaptureList />
 
-          {/* {devices &&
-            devices.length &&
-            devices.map((deviceId: string) => (
-              <div
-                key={deviceId}
-                style={{ display: "inline-block", paddingRight: "10px" }}
-              >
-                <Link
-                  to={`/${encode(deviceId)}`}
-                  getActiveProps={(location: string) => ({
-                    style: { color: "blue" },
-                  })}
-                >
-                  <h2>{deviceId}</h2>
-                </Link>
-              </div>
-            ))} */}
-          {/* <MatchFirst>
-            <Match path=":deviceId">
-              {({ deviceId }: { deviceId: string }) => (
-                <VideoDevice deviceId={decode(deviceId)} />
-              )}
+          <div>
+            <NavItem to="/" title="Camera" />
+            <NavItem to="captures" title="Captures" />
+          </div>
+          <div>
+            <Match path="/">
+              <ConfigEditor />
+              {captureDevice ? (
+                <VideoDeviceViewer
+                  deviceId={captureDevice}
+                  key={captureDevice}
+                />
+              ) : null}
+              {controlsDevice ? (
+                <VideoDeviceControl
+                  deviceId={controlsDevice}
+                  key={controlsDevice}
+                />
+              ) : null}
             </Match>
-          </MatchFirst> */}
-          {/* <PaginationControls
-                currPage={currPage}
-                setCurrPage={setCurrPage}
-              /> */}
+            <Match path="captures">
+              <CaptureList />
+            </Match>
+            <MatchFirst>
+              <Match path="capture/:captureId">
+                {({ captureId }: { captureId: string }) => (
+                  <CaptureFileList captureId={captureId} />
+                )}
+              </Match>
+            </MatchFirst>
+          </div>
         </div>
       ) : (
         connectivityState
