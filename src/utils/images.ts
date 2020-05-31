@@ -8,6 +8,13 @@ import { encode } from "../common/encode";
 
 sizeOf.setConcurrency(123456);
 
+export const getSize = (
+  fullPath: string,
+): { width: number; height: number } => {
+  const { width, height } = (sizeOf as any)(fullPath);
+  return { width: parseInt(width, 10), height: parseInt(height, 10) };
+};
+
 export const getThumbnail = async (imageFilePath: string) => {
   const fullImagePath = path.join(CAPTURE_FOLDER, imageFilePath);
   const thumbsFolder = path.join(
@@ -26,10 +33,13 @@ export const getThumbnail = async (imageFilePath: string) => {
   if (!fs.existsSync(thumbsFolder)) {
     shell.mkdir("-p", thumbsFolder);
   }
-  const { width, height } = (sizeOf as any)(fullImagePath);
+  const { width, height } = getSize(fullImagePath);
 
   await sharp(fullImagePath)
-    .resize(width / 3, height / 3)
+    .resize(
+      parseInt((width / 3).toString(), 10),
+      parseInt((height / 3).toString(), 10),
+    )
     .toFile(thumbImagePath);
 
   return thumbImagePath;

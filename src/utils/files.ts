@@ -56,3 +56,34 @@ export const stat = async (path: string): Promise<fs.Stats> => {
     });
   });
 };
+
+export const getChronologicalFileList = async (
+  path: string,
+): Promise<string[]> => {
+  const files = await listDirectory(`${path}`);
+
+  const stats = [];
+
+  // tslint:disable-next-line:prefer-for-of
+  for (let i = 0; i < files.length; i++) {
+    const file = files[i];
+    const s = await stat(`${path}/${file}`);
+    if (s.isFile()) {
+      stats.push({
+        name: file,
+        ...s,
+      });
+    }
+  }
+
+  // sort in chronological order
+  stats.sort((a, b) => {
+    return a.birthtimeMs > b.birthtimeMs
+      ? 1
+      : b.birthtimeMs > a.birthtimeMs
+      ? -1
+      : 0;
+  });
+
+  return stats.map(s => s.name);
+};

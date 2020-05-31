@@ -22,6 +22,7 @@ export interface APIStoreState {
   setDeviceZoomControl: APIRequest;
   getCaptures: APIRequest;
   getCaptureFiles: APIRequest;
+  getResultsFileList: APIRequest;
 }
 
 export type APIResource = keyof APIStoreState;

@@ -1,9 +1,12 @@
+import * as sharp from "sharp";
 import { Application } from "express";
 import { THUMBS_FOLDER_NAME } from "../common/constants";
 import { decode } from "../common/encode";
-import { getConfig } from "../utils/config";
-import { listDirectory, stat } from "../utils/files";
+import { listDirectory, stat, getChronologicalFileList } from "../utils/files";
 import { getCaptureDir } from "../utils/timelapse";
+import * as GifEncoder from "gif-encoder";
+import * as fs from "fs";
+import { getSize } from "../utils/images";
 
 export const registerTimelapseRoutes = async (app: Application) => {
   app.get("/timelapse/capture/list", async (req, res) => {
@@ -56,32 +59,78 @@ export const registerTimelapseRoutes = async (app: Application) => {
   app.get("/timelapse/capture/:captureId/list", async (req, res) => {
     const captureDir = await getCaptureDir();
     const captureId = decode(req.params.captureId);
-    const files = await listDirectory(`${captureDir}/${captureId}`);
-    const stats = [];
+    const files = await getChronologicalFileList(`${captureDir}/${captureId}`);
+    res.send(
+      JSON.stringify(
+        files.map(f => `${captureId}/${f}`).filter(f => f.endsWith("jpg")),
+      ),
+    );
+  });
+
+  app.get("/timelapse/capture/:captureId/listResults", async (req, res) => {
+    const captureDir = await getCaptureDir();
+    const captureId = decode(req.params.captureId);
+    const files = await getChronologicalFileList(`${captureDir}/${captureId}`);
+    res.send(
+      JSON.stringify(
+        files.map(f => `${captureId}/${f}`).filter(f => f.endsWith("gif")),
+      ),
+    );
+  });
+
+  app.get("/timelapse/capture/:captureId/create/:delayMs", async (req, res) => {
+    const captureDir = await getCaptureDir();
+    const captureId = decode(req.params.captureId);
+    const delayMs = decode(req.params.delayMs);
+    let files = await getChronologicalFileList(`${captureDir}/${captureId}`);
+    files = files
+      .map(f => `${captureDir}/${captureId}/${f}`)
+      .filter(f => f.endsWith("jpg"));
+
+    let done = false;
+    req.on("close", () => {
+      console.log("aborted");
+      done = true;
+    });
+
+    const nowMs = Date.now();
+    const outputFile = fs.createWriteStream(
+      `${captureDir}/${captureId}/out-${nowMs}.gif`,
+    );
+    const { width, height } = getSize(files[0]);
+    const gif = new GifEncoder(width, height);
+    gif.pipe(outputFile);
+    gif.setDelay(delayMs);
+    gif.setQuality(20);
+    gif.writeHeader();
 
     // tslint:disable-next-line:prefer-for-of
     for (let i = 0; i < files.length; i++) {
-      const file = files[i];
-      const s = await stat(`${captureDir}/${captureId}/${file}`);
-      if (s.isFile()) {
-        stats.push({
-          name: file,
-          ...s,
-        });
+      const f = files[i];
+      const msg = `(${parseInt(
+        (i / files.length) * 100 + "",
+        10,
+      )}%) adding frame ${f}`;
+      console.log(msg);
+      res.write(msg + "\n");
+
+      const rgba = await sharp(f)
+        .ensureAlpha()
+        .raw()
+        .toBuffer();
+
+      gif.addFrame(rgba);
+
+      if (done) {
+        gif.finish();
+        res.write("aborted");
+        res.end();
+        return;
       }
     }
 
-    // sort in chronological order
-    stats.sort((a, b) => {
-      return a.birthtimeMs > b.birthtimeMs
-        ? 1
-        : b.birthtimeMs > a.birthtimeMs
-        ? -1
-        : 0;
-    });
-
-    const c = await getConfig();
-
-    res.send(JSON.stringify(stats.map(s => `${c.captureName}/${s.name}`)));
+    gif.finish();
+    res.write("done! you can close this tab and reload the previous page");
+    res.end();
   });
 };

@@ -10,6 +10,8 @@ import VideoDeviceViewer from "./VideoDeviceViewer";
 import CaptureList from "./CaptureList";
 import NavItem from "./NavItem";
 import CaptureFileList from "./CaptureFileList";
+import CreateTimelapseButton from "./CreateTimelapseButton";
+import ResultsFileList from "./ResultsFileList";
 
 // tslint:disable-next-line:no-var-requires
 const { Match, MatchFirst, Link } = require("react-location");
@@ -107,7 +109,13 @@ const App = ({
             <MatchFirst>
               <Match path="capture/:captureId">
                 {({ captureId }: { captureId: string }) => (
-                  <CaptureFileList captureId={captureId} />
+                  <div>
+                    <h2>Results</h2>
+                    <CreateTimelapseButton captureId={captureId} />
+                    <ResultsFileList captureId={captureId} />
+                    <h2>Files</h2>
+                    <CaptureFileList captureId={captureId} />
+                  </div>
                 )}
               </Match>
             </MatchFirst>
