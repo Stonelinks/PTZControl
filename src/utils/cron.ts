@@ -1,5 +1,5 @@
 import { MILLISECONDS_IN_SECOND, timeout } from "../common/time";
-import { CaptureCronJob } from "./timelapse";
+import { CaptureCronJob, TiltCronJob, PanCronJob } from "./timelapse";
 
 interface CronJobs {
   name: string;
@@ -54,4 +54,4 @@ class Cron {
   }
 }
 
-export const cron = new Cron([CaptureCronJob]);
+export const cron = new Cron([CaptureCronJob, PanCronJob, TiltCronJob]);

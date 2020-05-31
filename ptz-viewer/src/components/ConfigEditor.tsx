@@ -7,6 +7,7 @@ import DeviceConfigSelector from "./DeviceConfigSelector";
 import ConfigStringInput from "./ConfigStringInput";
 import ConfigBooleanInput from "./ConfigBooleanInput";
 import ConfigNumberInput from "./ConfigNumberInput";
+import ConfigSelectionInput from "./ConfigSelectionInput";
 
 const mapState = (state: RootState) => ({
   config: state.api.getConfig.value as Config,
@@ -65,13 +66,48 @@ const ConfigEditor = ({ config, onGetConfig }: Props) => {
         onChange={onGetConfig}
         positiveOnly
       />
-      {/* <ConfigNumberInput
-        configKey="captureDurationMinutes"
-        displayText="Capture Duration (minutes)"
-        configValue={config.captureDurationMinutes}
+      <h3>Pan config</h3>
+      <ConfigBooleanInput
+        configKey="panStepEnable"
+        displayText="Pan Enable"
+        configValue={config.panStepEnable}
+        onChange={onGetConfig}
+      />
+      <ConfigNumberInput
+        configKey="panStepRateMs"
+        displayText="Pan Rate (ms)"
+        configValue={config.panStepRateMs}
         onChange={onGetConfig}
         positiveOnly
-      /> */}
+      />
+      <ConfigSelectionInput
+        configKey="panStepDirection"
+        displayText="Pan step direction"
+        options={["left", "right"]}
+        configValue={config.panStepDirection}
+        onChange={onGetConfig}
+      />
+      <h3>Tilt config</h3>
+      <ConfigBooleanInput
+        configKey="tiltStepEnable"
+        displayText="Tilt Enable"
+        configValue={config.tiltStepEnable}
+        onChange={onGetConfig}
+      />
+      <ConfigNumberInput
+        configKey="tiltStepRateMs"
+        displayText="Tilt Rate (ms)"
+        configValue={config.tiltStepRateMs}
+        onChange={onGetConfig}
+        positiveOnly
+      />
+      <ConfigSelectionInput
+        configKey="tiltStepDirection"
+        displayText="Tilt step direction"
+        options={["up", "down"]}
+        configValue={config.tiltStepDirection}
+        onChange={onGetConfig}
+      />
     </div>
   );
 };

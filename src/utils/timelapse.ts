@@ -1,8 +1,14 @@
 import * as shell from "shelljs";
 import { CAPTURE_FOLDER } from "../common/constants";
+import { MILLISECONDS_IN_SECOND, timeout } from "../common/time";
 import { getConfig } from "./config";
 import { writeFileAsync } from "./files";
-import { takeSnapshot } from "./videoDevices";
+import {
+  getOrCreateCameraDevice,
+  moveAxisSpeedStart,
+  moveAxisSpeedStop,
+  takeSnapshot,
+} from "./videoDevices";
 
 export const getCaptureDir = async () => {
   const captureDir = `${CAPTURE_FOLDER}`;
@@ -35,6 +41,40 @@ export const CaptureCronJob = {
         `${activeCaptureDir}/${c.captureName}-${nowMs}.jpg`,
         snapshot,
       );
+    }
+  },
+};
+
+export const PanCronJob = {
+  name: "pan",
+  intervalMs: async () => {
+    const c = await getConfig();
+    return c.panStepRateMs;
+  },
+  fn: async () => {
+    const c = await getConfig();
+    if (c.panStepEnable) {
+      const { cam } = getOrCreateCameraDevice(c.controlsDevice);
+      moveAxisSpeedStart(cam, "pan", c.panStepDirection);
+      await timeout(0.2 * MILLISECONDS_IN_SECOND);
+      moveAxisSpeedStop(cam, "pan");
+    }
+  },
+};
+
+export const TiltCronJob = {
+  name: "tilt",
+  intervalMs: async () => {
+    const c = await getConfig();
+    return c.tiltStepRateMs;
+  },
+  fn: async () => {
+    const c = await getConfig();
+    if (c.tiltStepEnable) {
+      const { cam } = getOrCreateCameraDevice(c.controlsDevice);
+      moveAxisSpeedStart(cam, "tilt", c.tiltStepDirection);
+      await timeout(0.2 * MILLISECONDS_IN_SECOND);
+      moveAxisSpeedStop(cam, "tilt");
     }
   },
 };

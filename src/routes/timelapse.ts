@@ -101,7 +101,8 @@ export const registerTimelapseRoutes = async (app: Application) => {
     const gif = new GifEncoder(width, height);
     gif.pipe(outputFile);
     gif.setDelay(delayMs);
-    gif.setQuality(20);
+    gif.setQuality(100);
+    gif.setRepeat(0);
     gif.writeHeader();
 
     // tslint:disable-next-line:prefer-for-of

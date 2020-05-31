@@ -17,6 +17,14 @@ const makeDefaultConfig = async (): Promise<Config> => {
     captureName: "capture",
     captureEnable: false,
     captureRateMs: 5 * MILLISECONDS_IN_SECOND,
+
+    panStepEnable: false,
+    panStepRateMs: 2000,
+    panStepDirection: "left",
+
+    tiltStepEnable: false,
+    tiltStepRateMs: 2000,
+    tiltStepDirection: "up",
   };
 };
 

@@ -89,7 +89,6 @@ const App = ({
           </div>
           <div>
             <Match path="/">
-              <ConfigEditor />
               {captureDevice ? (
                 <VideoDeviceViewer
                   deviceId={captureDevice}
@@ -102,6 +101,7 @@ const App = ({
                   key={controlsDevice}
                 />
               ) : null}
+              <ConfigEditor />
             </Match>
             <Match path="captures">
               <CaptureList />
