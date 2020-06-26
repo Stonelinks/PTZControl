@@ -1,9 +1,16 @@
 #!/bin/bash
 set -ex
 
+case $OS in
+linux)
+  sudo apt-get update -y
+  sudo apt-get install -y --no-install-recommends libv4l-dev jq libatomic1 libudev-dev
+  ;;
+esac
+
 echo "Checking if we have node $NODE_VERSION."
 if [ ! -f opt/node$NODE_VERSION/bin/node ]; then
-  NODE_DOWNLOAD_URL=https://nodejs.org/dist/v$NODE_VERSION/node-v$NODE_VERSION-$OS-x64.tar.gz
+  NODE_DOWNLOAD_URL=https://nodejs.org/dist/v$NODE_VERSION/node-v$NODE_VERSION-$OS-$ARCH.tar.gz
   NODE_TMP_PATH=/tmp/node$NODE_VERSION.tar.gz
   curl -fsSL "$NODE_DOWNLOAD_URL" -o $NODE_TMP_PATH
   mkdir -p opt/node$NODE_VERSION
@@ -22,9 +29,3 @@ if [ ! -f opt/node$YARN_VERSION/bin/yarn ]; then
 fi
 
 yarn reset
-
-# https://www.npmjs.com/package/node-webcam#install
-case $OS in
-linux)
-  sudo apt-get install libv4l-dev
-esac

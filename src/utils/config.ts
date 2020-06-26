@@ -1,6 +1,10 @@
 import * as fs from "fs";
 import { CONFIG_FILE } from "../common/constants";
-import { MILLISECONDS_IN_SECOND, timeout } from "../common/time";
+import {
+  MILLISECONDS_IN_SECOND,
+  timeout,
+  MILLISECONDS_IN_MINUTE,
+} from "../common/time";
 import { Config } from "../common/types";
 import { readJsonAsync, writeJsonAsync } from "./files";
 import { listVideoDevices } from "./videoDevices";
@@ -16,7 +20,7 @@ const makeDefaultConfig = async (): Promise<Config> => {
 
     captureName: "capture",
     captureEnable: false,
-    captureRateMs: 5 * MILLISECONDS_IN_SECOND,
+    captureRateMs: MILLISECONDS_IN_MINUTE,
 
     panStepEnable: false,
     panStepRateMs: 2000,
