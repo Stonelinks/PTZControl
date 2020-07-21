@@ -3,7 +3,7 @@ import { connect, ConnectedProps } from "react-redux";
 import { RootState } from "../redux";
 import { apiCall } from "../redux/api/actions";
 import { apiFetch } from "../utils/api";
-import { reload } from "../utils/url";
+import { reload, frontendPath } from "../utils/url";
 import ConfigEditor from "./ConfigEditor";
 import VideoDeviceControl from "./VideoDeviceControl";
 import VideoDeviceViewer from "./VideoDeviceViewer";
@@ -84,11 +84,11 @@ const App = ({
           </div>
 
           <div>
-            <NavItem to="/" title="Camera" />
-            <NavItem to="captures" title="Captures" />
+            <NavItem to={frontendPath("/")} title="Camera" />
+            <NavItem to={frontendPath("captures")} title="Captures" />
           </div>
           <div>
-            <Match path="/">
+            <Match path={frontendPath("/")}>
               {captureDevice ? (
                 <VideoDeviceViewer
                   deviceId={captureDevice}
@@ -103,11 +103,11 @@ const App = ({
               ) : null}
               <ConfigEditor />
             </Match>
-            <Match path="captures">
+            <Match path={frontendPath("captures")}>
               <CaptureList />
             </Match>
             <MatchFirst>
-              <Match path="capture/:captureId">
+              <Match path={frontendPath("capture/:captureId")}>
                 {({ captureId }: { captureId: string }) => (
                   <div>
                     <h2>Results</h2>

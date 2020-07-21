@@ -3,6 +3,7 @@ import React from "react";
 import { connect, ConnectedProps } from "react-redux";
 import { RootState } from "../redux";
 import { apiCall } from "../redux/api/actions";
+import { frontendPath } from "../utils/url";
 
 // tslint:disable-next-line:no-var-requires
 const { Link } = require("react-location");
@@ -53,7 +54,7 @@ const CaptureFileList = ({ getCaptures, onGetCaptures }: Props) => {
                 border: "1px grey solid",
               }}
             >
-              <Link to={`/capture/${name}`}>
+              <Link to={frontendPath(`capture/${name}`)}>
                 <pre style={{ textAlign: "center", fontWeight: "bold" }}>
                   {name}
                 </pre>
