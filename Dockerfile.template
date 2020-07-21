@@ -40,16 +40,16 @@ RUN install_packages jq
 RUN source .envrc && setup
 RUN source .envrc && yarn setup && yarn sync-common && yarn build
 
-FROM balenalib/%%BALENA_MACHINE_NAME%%-ubuntu-node:12-bionic-run
+# FROM balenalib/%%BALENA_MACHINE_NAME%%-ubuntu-node:12-bionic-run
 
-COPY --from=build /usr/src/app /usr/src/app
+# COPY --from=build /usr/src/app /usr/src/app
 
-ENV UDEV=on
+# ENV UDEV=on
 
-RUN install_packages jq
+# RUN install_packages jq
 
-WORKDIR /usr/src/app
+# WORKDIR /usr/src/app
 
-SHELL ["/bin/bash", "-c"]
+# SHELL ["/bin/bash", "-c"]
 
 ENTRYPOINT source .envrc && yarn start-server
