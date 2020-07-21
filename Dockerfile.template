@@ -46,4 +46,6 @@ COPY --from=build /usr/src/app /usr/src/app
 
 ENV UDEV=on
 
+SHELL ["/bin/bash", "-c"]
+
 ENTRYPOINT source .envrc && yarn start-server
