@@ -1,5 +1,6 @@
 import * as bodyParser from "body-parser";
 import * as cors from "cors";
+import * as url from "url";
 import * as express from "express";
 import { SERVER_PORT, VIEWER_FOLDER, CAPTURE_FOLDER } from "./common/constants";
 import { initConfig } from "./utils/config";
@@ -52,6 +53,13 @@ app.get("/thumb/:imageFilePath", async (req, res) => {
   } finally {
     // register catchall route
     app.get("*", (req, res) => {
+      console.log(
+        `missed URL: ${url.format({
+          protocol: req.protocol,
+          host: req.get("host"),
+          pathname: req.originalUrl,
+        })}`,
+      );
       res.sendFile(`${VIEWER_FOLDER}/index.html`);
     });
 
