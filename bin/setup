@@ -1,12 +1,16 @@
 #!/bin/bash
 set -ex
 
-case $OS in
-linux)
-  sudo apt-get update -y
-  sudo apt-get install -y --no-install-recommends libv4l-dev jq libatomic1 libudev-dev
-  ;;
-esac
+if [ -z IS_DOCKER ]; then
+  install_packages libv4l-dev jq libatomic1 libudev-dev
+else
+  case $OS in
+  linux)
+    sudo apt-get update -y
+    sudo apt-get install -y --no-install-recommends libv4l-dev jq libatomic1 libudev-dev
+    ;;
+  esac
+fi
 
 echo "Checking if we have node $NODE_VERSION."
 if [ ! -f opt/node$NODE_VERSION/bin/node ]; then

@@ -1,5 +1,4 @@
-FROM balenalib/%%BALENA_MACHINE_NAME%%-ubuntu-node:12-bionic-build
-SHELL ["/bin/bash", "-c"]
+FROM balenalib/%%BALENA_MACHINE_NAME%%-ubuntu-node:12-bionic-build as build
 
 # This is pretty annoying... we need to compile libvips ourselves
 RUN apt-get update \
@@ -31,6 +30,8 @@ RUN wget ${VIPS_URL}/v${VIPS_VERSION}/vips-${VIPS_VERSION}.tar.gz \
   && make \
   && make install
 
+SHELL ["/bin/bash", "-c"]
+
 WORKDIR /usr/src/app
 
 COPY . /usr/src/app/
@@ -39,11 +40,11 @@ RUN install_packages jq
 RUN source .envrc && setup
 RUN source .envrc && yarn setup && yarn sync-common && yarn build
 
-FROM balenalib/%%BALENA_MACHINE_NAME%%-ubuntu-node:12-bionic-run
+# FROM balenalib/%%BALENA_MACHINE_NAME%%-ubuntu-node:12-bionic-run
 
-SHELL ["/bin/bash", "-c"]
+# SHELL ["/bin/bash", "-c"]
 
-COPY --from=build /usr/src/app /usr/src/app
+# COPY --from=build /usr/src/app /usr/src/app
 
 ENV UDEV=on
 
