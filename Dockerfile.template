@@ -46,6 +46,8 @@ COPY --from=build /usr/src/app /usr/src/app
 
 ENV UDEV=on
 
+RUN install_packages jq
+
 WORKDIR /usr/src/app
 
 SHELL ["/bin/bash", "-c"]
