@@ -56,7 +56,7 @@ app.get("/thumb/:imageFilePath", async (req, res) => {
     });
 
     // start the server
-    app.listen(SERVER_PORT, err => {
+    app.listen(SERVER_PORT, (err: Error) => {
       if (err) {
         return console.log("something bad happened", err);
       }
