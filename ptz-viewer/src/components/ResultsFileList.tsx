@@ -35,25 +35,25 @@ const ResultsFileList = ({
 
   return (
     <div>
-      {getResultsFileList &&
-        getResultsFileList.length ?
-        getResultsFileList.map((f: string) => (
-          <div
-            style={{
-              width: "calc(20% - 1px)",
-              margin: "0px -1px -1px 0px",
-              padding: "0px",
-              display: "inline-block",
-              border: "1px grey solid",
-            }}
-          >
-            <img
-              src={`${BASE_URL}/${f}`}
-              style={{ width: "100%", height: "auto" }}
-            />
-            <pre style={{ textAlign: "center" }}>{f}</pre>
-          </div>
-        )) : null}
+      {getResultsFileList && getResultsFileList.length
+        ? getResultsFileList.map((f: string) => (
+            <div
+              style={{
+                width: "calc(20% - 1px)",
+                margin: "0px -1px -1px 0px",
+                padding: "0px",
+                display: "inline-block",
+                border: "1px grey solid",
+              }}
+            >
+              <img
+                src={`${BASE_URL}/${f}`}
+                style={{ width: "100%", height: "auto" }}
+              />
+              <pre style={{ textAlign: "center" }}>{f}</pre>
+            </div>
+          ))
+        : null}
       {/* <Debug d={getResultsFileList} /> */}
     </div>
   );

@@ -5,6 +5,14 @@ import { connect, ConnectedProps } from "react-redux";
 import { MILLISECONDS_IN_SECOND } from "../common/time";
 import { RootState } from "../redux";
 import { apiCall } from "../redux/api/actions";
+import {
+  FaChevronDown,
+  FaChevronUp,
+  FaChevronLeft,
+  FaChevronRight,
+  FaPlus,
+  FaMinus,
+} from "react-icons/fa";
 
 const mapState = (state: RootState) => ({
   getDeviceFormats: state.api.getDeviceFormats.value,
@@ -42,89 +50,191 @@ interface OwnProps {
 
 type Props = PropsFromRedux & OwnProps;
 
-const VideoDeviceControl = ({
-  deviceId,
-  getDeviceFormats,
-  onGetDeviceFormats,
-  getDeviceControls,
-  onGetDeviceControls,
-  onSetDevicePositionControl,
-  onSetDeviceZoomControl,
-  onSetDeviceSpeedControlStart,
-  onSetDeviceSpeedControlStop,
-}: Props) => {
-  // React.useEffect(() => {
-  //   onGetDeviceFormats(deviceId);
-  //   onGetDeviceControls(deviceId);
-  // }, [deviceId, onGetDeviceFormats, onGetDeviceControls]);
+interface State {
+  left: boolean;
+  right: boolean;
+  up: boolean;
+  down: boolean;
+  in: boolean;
+  out: boolean;
+}
 
-  React.useEffect(() => {
-    console.log("mounted");
+class VideoDeviceControl extends React.Component<Props, State> {
+  panLeftStart: () => void;
+  panLeftEnd: () => void;
+  panRightStart: () => void;
+  panRightEnd: () => void;
+  tiltUpStart: () => void;
+  tiltUpEnd: () => void;
+  tiltDownStart: () => void;
+  tiltDownEnd: () => void;
+  zoomIn: any;
+  zoomOut: any;
 
-    const isMoving = {
+  constructor(props: Props) {
+    super(props);
+
+    this.state = {
       left: false,
       right: false,
       up: false,
       down: false,
+      in: false,
+      out: false,
     };
 
-    const makeKeyDownHandler = (
-      axis: "pan" | "tilt",
-      direction: "left" | "right" | "up" | "down",
-    ) => {
-      return () => {
-        if (!isMoving[direction]) {
-          isMoving[direction] = true;
-          console.log("start", axis, direction);
-          onSetDeviceSpeedControlStart(deviceId, axis, direction);
-        }
-        return false;
-      };
-    };
+    this.panLeftStart = this.makeKeyDownHandler("pan", "left");
+    this.panLeftEnd = this.makeKeyUpHandler("pan", "left");
+    this.panRightStart = this.makeKeyDownHandler("pan", "right");
+    this.panRightEnd = this.makeKeyUpHandler("pan", "right");
+    this.tiltUpStart = this.makeKeyDownHandler("tilt", "up");
+    this.tiltUpEnd = this.makeKeyUpHandler("tilt", "up");
+    this.tiltDownStart = this.makeKeyDownHandler("tilt", "down");
+    this.tiltDownEnd = this.makeKeyUpHandler("tilt", "down");
+    this.zoomIn = this.makeZoomHandler("in");
+    this.zoomOut = this.makeZoomHandler("out");
+  }
 
-    const makeKeyUpHandler = (
-      axis: "pan" | "tilt",
-      direction: "left" | "right" | "up" | "down",
-    ) => {
-      return () => {
-        console.log("stop", axis);
-        isMoving[direction] = false;
-        onSetDeviceSpeedControlStop(deviceId, axis);
-        return false;
-      };
-    };
-
-    mousetrap.bind("left", makeKeyDownHandler("pan", "left"), "keydown");
-    mousetrap.bind("left", makeKeyUpHandler("pan", "left"), "keyup");
-    mousetrap.bind("right", makeKeyDownHandler("pan", "right"), "keydown");
-    mousetrap.bind("right", makeKeyUpHandler("pan", "right"), "keyup");
-    mousetrap.bind("up", makeKeyDownHandler("tilt", "up"), "keydown");
-    mousetrap.bind("up", makeKeyUpHandler("tilt", "up"), "keyup");
-    mousetrap.bind("down", makeKeyDownHandler("tilt", "down"), "keydown");
-    mousetrap.bind("down", makeKeyUpHandler("tilt", "down"), "keyup");
-
-    const makeZoomHandler = (direction: "in" | "out") => {
-      return throttle(() => {
-        onSetDeviceZoomControl(deviceId, direction);
-        return false;
-      }, 0.1 * MILLISECONDS_IN_SECOND);
-    };
-
-    mousetrap.bind("q", makeZoomHandler("in"));
-    mousetrap.bind("a", makeZoomHandler("out"));
-
+  makeKeyDownHandler = (
+    axis: "pan" | "tilt",
+    direction: "left" | "right" | "up" | "down",
+  ) => {
     return () => {
-      console.log("will unmount");
-      mousetrap.unbind("q");
-      mousetrap.unbind("a");
-      mousetrap.unbind("left");
-      mousetrap.unbind("right");
-      mousetrap.unbind("up");
-      mousetrap.unbind("down");
+      if (!this.state[direction]) {
+        const { onSetDeviceSpeedControlStart, deviceId } = this.props;
+        console.log("start", axis, direction);
+        onSetDeviceSpeedControlStart(deviceId, axis, direction);
+        (this.setState as any)({ [direction]: true });
+      }
     };
-  });
+  };
 
-  return null;
-};
+  makeKeyUpHandler = (
+    axis: "pan" | "tilt",
+    direction: "left" | "right" | "up" | "down",
+  ) => {
+    return () => {
+      const { onSetDeviceSpeedControlStop, deviceId } = this.props;
+      console.log("stop", axis);
+      onSetDeviceSpeedControlStop(deviceId, axis);
+      (this.setState as any)({ [direction]: false });
+    };
+  };
+
+  makeZoomHandler = (direction: "in" | "out") => {
+    return throttle(() => {
+      const { onSetDeviceZoomControl, deviceId } = this.props;
+      onSetDeviceZoomControl(deviceId, direction);
+      (this.setState as any)({ [direction]: true });
+      setTimeout(() => {
+        (this.setState as any)({ [direction]: false });
+      }, 0.5 * MILLISECONDS_IN_SECOND);
+      console.log("zoom", direction);
+    }, 0.1 * MILLISECONDS_IN_SECOND);
+  };
+
+  componentDidMount() {
+    mousetrap.bind("left", this.panLeftStart, "keydown");
+    mousetrap.bind("left", this.panLeftEnd, "keyup");
+    mousetrap.bind("right", this.panRightStart, "keydown");
+    mousetrap.bind("right", this.panRightEnd, "keyup");
+    mousetrap.bind("up", this.tiltUpStart, "keydown");
+    mousetrap.bind("up", this.tiltUpEnd, "keyup");
+    mousetrap.bind("down", this.tiltDownStart, "keydown");
+    mousetrap.bind("down", this.tiltDownEnd, "keyup");
+    mousetrap.bind("q", this.zoomIn);
+    mousetrap.bind("a", this.zoomOut);
+  }
+
+  componentDidUnmount() {
+    mousetrap.unbind("q");
+    mousetrap.unbind("a");
+    mousetrap.unbind("left");
+    mousetrap.unbind("right");
+    mousetrap.unbind("up");
+    mousetrap.unbind("down");
+  }
+
+  render() {
+    return (
+      <table>
+        <tr>
+          <td></td>
+          <td>
+            <button
+              style={{
+                backgroundColor: `${this.state.up ? "" : "light"}gray`,
+              }}
+              onMouseDown={this.tiltUpStart}
+              onMouseUp={this.tiltUpEnd}
+            >
+              <FaChevronUp />
+            </button>
+          </td>
+          <td></td>
+          <td></td>
+          <td></td>
+          <td>
+            <button
+              style={{
+                backgroundColor: `${this.state.in ? "" : "light"}gray`,
+              }}
+              onMouseDown={this.zoomIn}
+            >
+              <FaPlus />
+            </button>
+          </td>
+        </tr>
+        <tr>
+          <td>
+            <button
+              style={{
+                backgroundColor: `${this.state.left ? "" : "light"}gray`,
+              }}
+              onMouseDown={this.panLeftStart}
+              onMouseUp={this.panLeftEnd}
+            >
+              <FaChevronLeft />
+            </button>
+          </td>
+          <td>
+            <button
+              style={{
+                backgroundColor: `${this.state.down ? "" : "light"}gray`,
+              }}
+              onMouseDown={this.tiltDownStart}
+              onMouseUp={this.tiltDownEnd}
+            >
+              <FaChevronDown />
+            </button>
+          </td>
+          <td>
+            <button
+              style={{
+                backgroundColor: `${this.state.right ? "" : "light"}gray`,
+              }}
+              onMouseDown={this.panRightStart}
+              onMouseUp={this.panRightEnd}
+            >
+              <FaChevronRight />
+            </button>
+          </td>
+          <td></td>
+          <td></td>
+          <td>
+            <button
+              style={{
+                backgroundColor: `${this.state.out ? "" : "light"}gray`,
+              }}
+              onMouseDown={this.zoomOut}
+            >
+              <FaMinus />
+            </button>
+          </td>
+        </tr>
+      </table>
+    );
+  }
+}
 
 export default connector(VideoDeviceControl);
