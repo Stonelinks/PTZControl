@@ -57,11 +57,11 @@ const ConfigNumberInput = ({
       <label>
         {displayText}
         <input value={configValue} onChange={handleChange} />
-        {!isNumber && (
+        {!isNumber ? (
           <p style={{ display: "inline-block", color: "red" }}>
             must be a{positiveOnly ? " positive" : ""} number
           </p>
-        )}
+        ) : null}
       </label>
     </div>
   );

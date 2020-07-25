@@ -31,47 +31,47 @@ const CaptureFileList = ({ getCaptures, onGetCaptures }: Props) => {
 
   return (
     <div>
-      {getCaptures &&
-        getCaptures.length &&
-        getCaptures.map(
-          ({
-            name,
-            numFiles,
-            startTimeMs,
-            endTimeMs,
-          }: {
-            name: string;
-            numFiles: number;
-            startTimeMs: number;
-            endTimeMs: number;
-          }) => (
-            <div
-              style={{
-                width: "calc(20% - 1px)",
-                margin: "0px -1px -1px 0px",
-                padding: "0px",
-                display: "inline-block",
-                border: "1px grey solid",
-              }}
-            >
-              <Link to={frontendPath(`capture/${name}`)}>
-                <pre style={{ textAlign: "center", fontWeight: "bold" }}>
-                  {name}
-                </pre>
-                <pre style={{ textAlign: "center" }}>
-                  {[
-                    `${numFiles} files`,
-                    `Duration: ${moment
-                      .duration(endTimeMs - startTimeMs)
-                      .humanize()}`,
-                    `Start: ${moment(startTimeMs).format("M/D/YY H:mma")}`,
-                    `End: ${moment(endTimeMs).format("M/D/YY H:mma")}`,
-                  ].join("\n")}
-                </pre>
-              </Link>
-            </div>
-          ),
-        )}
+      {getCaptures && getCaptures.length
+        ? getCaptures.map(
+            ({
+              name,
+              numFiles,
+              startTimeMs,
+              endTimeMs,
+            }: {
+              name: string;
+              numFiles: number;
+              startTimeMs: number;
+              endTimeMs: number;
+            }) => (
+              <div
+                style={{
+                  width: "calc(20% - 1px)",
+                  margin: "0px -1px -1px 0px",
+                  padding: "0px",
+                  display: "inline-block",
+                  border: "1px grey solid",
+                }}
+              >
+                <Link to={frontendPath(`capture/${name}`)}>
+                  <pre style={{ textAlign: "center", fontWeight: "bold" }}>
+                    {name}
+                  </pre>
+                  <pre style={{ textAlign: "center" }}>
+                    {[
+                      `${numFiles} files`,
+                      `Duration: ${moment
+                        .duration(endTimeMs - startTimeMs)
+                        .humanize()}`,
+                      `Start: ${moment(startTimeMs).format("M/D/YY H:mma")}`,
+                      `End: ${moment(endTimeMs).format("M/D/YY H:mma")}`,
+                    ].join("\n")}
+                  </pre>
+                </Link>
+              </div>
+            ),
+          )
+        : null}
     </div>
   );
 };

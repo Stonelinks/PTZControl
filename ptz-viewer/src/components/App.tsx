@@ -14,7 +14,7 @@ import CreateTimelapseButton from "./CreateTimelapseButton";
 import ResultsFileList from "./ResultsFileList";
 
 // tslint:disable-next-line:no-var-requires
-const { Match, MatchFirst, Link } = require("react-location");
+const { Match, MatchFirst } = require("react-location");
 
 const mapState = (state: RootState) => ({
   devices: state.api.devices.value,
@@ -88,25 +88,10 @@ const App = ({
             <NavItem to={frontendPath("captures")} title="Captures" />
           </div>
           <div>
-            <Match path={frontendPath("/")}>
-              {captureDevice ? (
-                <VideoDeviceViewer
-                  deviceId={captureDevice}
-                  key={captureDevice}
-                />
-              ) : null}
-              {controlsDevice ? (
-                <VideoDeviceControl
-                  deviceId={controlsDevice}
-                  key={controlsDevice}
-                />
-              ) : null}
-              <ConfigEditor />
-            </Match>
-            <Match path={frontendPath("captures")}>
-              <CaptureList />
-            </Match>
             <MatchFirst>
+              <Match path={frontendPath("captures")}>
+                <CaptureList />
+              </Match>
               <Match path={frontendPath("capture/:captureId")}>
                 {({ captureId }: { captureId: string }) => (
                   <div>
@@ -117,6 +102,23 @@ const App = ({
                     <CaptureFileList captureId={captureId} />
                   </div>
                 )}
+              </Match>
+
+              {/* This has to go last */}
+              <Match path={frontendPath("/")}>
+                {captureDevice ? (
+                  <VideoDeviceViewer
+                    deviceId={captureDevice}
+                    key={captureDevice}
+                  />
+                ) : null}
+                {controlsDevice ? (
+                  <VideoDeviceControl
+                    deviceId={controlsDevice}
+                    key={controlsDevice}
+                  />
+                ) : null}
+                <ConfigEditor />
               </Match>
             </MatchFirst>
           </div>

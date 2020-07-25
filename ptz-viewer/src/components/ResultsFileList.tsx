@@ -36,7 +36,7 @@ const ResultsFileList = ({
   return (
     <div>
       {getResultsFileList &&
-        getResultsFileList.length &&
+        getResultsFileList.length ?
         getResultsFileList.map((f: string) => (
           <div
             style={{
@@ -53,7 +53,7 @@ const ResultsFileList = ({
             />
             <pre style={{ textAlign: "center" }}>{f}</pre>
           </div>
-        ))}
+        )) : null}
       {/* <Debug d={getResultsFileList} /> */}
     </div>
   );
