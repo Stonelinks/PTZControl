@@ -9,6 +9,7 @@ import {
   moveAxisSpeedStop,
   takeSnapshot,
 } from "./videoDevices";
+import { DEFAULT_INTERVAL_MS } from "./cron";
 
 export const getCaptureDir = async () => {
   const captureDir = `${CAPTURE_FOLDER}`;
@@ -28,7 +29,7 @@ export const CaptureCronJob = {
   name: "capture",
   intervalMs: async () => {
     const c = await getConfig();
-    return c.captureRateMs;
+    return c.captureEnable ? c.captureRateMs : DEFAULT_INTERVAL_MS;
   },
   fn: async nowMs => {
     const c = await getConfig();
@@ -49,7 +50,7 @@ export const PanCronJob = {
   name: "pan",
   intervalMs: async () => {
     const c = await getConfig();
-    return c.panStepRateMs;
+    return c.panStepEnable ? c.panStepRateMs : DEFAULT_INTERVAL_MS;
   },
   fn: async () => {
     const c = await getConfig();
@@ -66,7 +67,7 @@ export const TiltCronJob = {
   name: "tilt",
   intervalMs: async () => {
     const c = await getConfig();
-    return c.tiltStepRateMs;
+    return c.tiltStepEnable ? c.tiltStepRateMs : DEFAULT_INTERVAL_MS;
   },
   fn: async () => {
     const c = await getConfig();

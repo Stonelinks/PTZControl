@@ -1,6 +1,8 @@
 import { MILLISECONDS_IN_SECOND, timeout } from "../common/time";
 import { CaptureCronJob, TiltCronJob, PanCronJob } from "./timelapse";
 
+export const DEFAULT_INTERVAL_MS = 15 * MILLISECONDS_IN_SECOND;
+
 interface CronJobs {
   name: string;
   intervalMs: (() => Promise<number>) | number;
@@ -25,7 +27,7 @@ class Cron {
     for (let i = 0; i < this.jobs.length; i++) {
       const { intervalMs, fn, name } = this.jobs[i];
 
-      let iMs: number = 100;
+      let iMs: number = DEFAULT_INTERVAL_MS;
       if (typeof intervalMs === "function") {
         iMs = await intervalMs();
       } else if (typeof intervalMs === "number") {
