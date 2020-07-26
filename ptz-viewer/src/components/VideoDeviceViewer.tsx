@@ -23,7 +23,12 @@ const VideoDeviceViewer = ({ deviceId }: Props) => {
     <div>
       <img
         src={`${BASE_URL}/video-device/${encode(deviceId)}/stream.mjpg`}
-        style={{ width: "100%", height: "auto" }}
+        style={{
+          width: "auto",
+          height: "auto",
+          maxHeight: "70vh",
+          maxWidth: "100%",
+        }}
       />
       {/* <img src={`${BASE_URL}/video-device/${encode(deviceId)}/snapshot.jpg`} /> */}
     </div>
