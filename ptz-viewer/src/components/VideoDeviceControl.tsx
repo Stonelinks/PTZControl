@@ -146,7 +146,7 @@ class VideoDeviceControl extends React.Component<Props, State> {
     mousetrap.bind("a", this.zoomOut);
   }
 
-  componentDidUnmount() {
+  componentWillUnmount() {
     mousetrap.unbind("q");
     mousetrap.unbind("a");
     mousetrap.unbind("left");
