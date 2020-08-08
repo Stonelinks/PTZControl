@@ -6,7 +6,7 @@ import {
   CameraTimeoutCronJob,
 } from "./timelapse";
 
-export const DEFAULT_INTERVAL_MS = 15 * MILLISECONDS_IN_SECOND;
+export const DEFAULT_INTERVAL_MS = 30 * MILLISECONDS_IN_SECOND;
 
 interface CronJobs {
   name: string;
