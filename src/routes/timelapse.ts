@@ -87,11 +87,11 @@ export const registerTimelapseRoutes = async (app: Application) => {
       .map(f => `${captureDir}/${captureId}/${f}`)
       .filter(f => f.endsWith("jpg"));
 
-    let done = false;
-    req.on("close", () => {
-      console.log("aborted");
-      done = true;
-    });
+    // let done = false;
+    // req.on("close", () => {
+    //   console.log("aborted");
+    //   done = true;
+    // });
 
     const nowMs = Date.now();
     const outputFile = fs.createWriteStream(
@@ -122,16 +122,16 @@ export const registerTimelapseRoutes = async (app: Application) => {
 
       gif.addFrame(rgba);
 
-      if (done) {
-        gif.finish();
-        res.write("aborted");
-        res.end();
-        return;
-      }
+      // if (done) {
+      //   gif.finish();
+      //   res.write("aborted");
+      //   res.end();
+      //   return;
+      // }
     }
 
     gif.finish();
-    res.write("done! you can close this tab and reload the previous page");
+    res.write("done! you should be automatically redirected");
     res.end();
   });
 };

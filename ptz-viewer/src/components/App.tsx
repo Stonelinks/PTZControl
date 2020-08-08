@@ -12,6 +12,7 @@ import NavItem from "./NavItem";
 import CaptureFileList from "./CaptureFileList";
 import CreateTimelapseButton from "./CreateTimelapseButton";
 import ResultsFileList from "./ResultsFileList";
+import CreateTimelapsePage from "./CreateTimelapsePage";
 
 // tslint:disable-next-line:no-var-requires
 const { Match, MatchFirst } = require("react-location");
@@ -92,6 +93,16 @@ const App = ({
               <Match path={frontendPath("captures")}>
                 <CaptureList />
               </Match>
+
+              <Match path={frontendPath("capture/:captureId/createTimelapse")}>
+                {({ captureId }: { captureId: string }) => (
+                  <div>
+                    <h2>Please wait...</h2>
+                    <CreateTimelapsePage captureId={captureId} />
+                  </div>
+                )}
+              </Match>
+
               <Match path={frontendPath("capture/:captureId")}>
                 {({ captureId }: { captureId: string }) => (
                   <div>
