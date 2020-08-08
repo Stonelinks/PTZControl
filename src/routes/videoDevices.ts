@@ -14,6 +14,26 @@ import {
 } from "../utils/videoDevices";
 import { timeout, MILLISECONDS_IN_SECOND } from "../common/time";
 
+let numVideoUsersConnected = 0;
+let lastUserDisconnectedMs = 0;
+
+export const getLastUserDisconnectedMs = () => lastUserDisconnectedMs;
+export const isStreamingVideo = () => numVideoUsersConnected > 0;
+
+const videoStreamUserConnected = () => {
+  console.log("user connected to video stream");
+  numVideoUsersConnected++;
+};
+
+const videoStreamUserDisconnected = () => {
+  console.log("user disconnected from video stream");
+  lastUserDisconnectedMs = Date.now();
+  numVideoUsersConnected--;
+  if (numVideoUsersConnected < 0) {
+    numVideoUsersConnected = 0;
+  }
+};
+
 export const registerVideoDeviceRoutes = async (app: Application) => {
   app.get("/video-device/list", async (req, res) => {
     const l = await listVideoDevices();
@@ -29,7 +49,7 @@ export const registerVideoDeviceRoutes = async (app: Application) => {
   app.get("/video-device/:deviceId/stream.mjpg", async (req, res) => {
     const deviceId = decode(req.params.deviceId);
     await start(deviceId);
-
+    videoStreamUserConnected();
     res.writeHead(200, {
       "Cache-Control":
         "no-store, no-cache, must-revalidate, pre-check=0, post-check=0, max-age=0",
@@ -47,6 +67,7 @@ export const registerVideoDeviceRoutes = async (app: Application) => {
 
     getOrCreateCameraDevice(deviceId).emitter.addListener("frame", writeFrame);
     res.addListener("close", () => {
+      videoStreamUserDisconnected();
       getOrCreateCameraDevice(deviceId).emitter.removeListener(
         "frame",
         writeFrame,

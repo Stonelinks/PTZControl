@@ -1,15 +1,24 @@
 import * as shell from "shelljs";
 import { CAPTURE_FOLDER } from "../common/constants";
-import { MILLISECONDS_IN_SECOND, timeout } from "../common/time";
+import {
+  MILLISECONDS_IN_SECOND,
+  timeout,
+  MILLISECONDS_IN_MINUTE,
+} from "../common/time";
 import { getConfig } from "./config";
 import { writeFileAsync } from "./files";
 import {
+  stop,
   getOrCreateCameraDevice,
   moveAxisSpeedStart,
   moveAxisSpeedStop,
   takeSnapshot,
 } from "./videoDevices";
 import { DEFAULT_INTERVAL_MS } from "./cron";
+import {
+  isStreamingVideo,
+  getLastUserDisconnectedMs,
+} from "../routes/videoDevices";
 
 export const getCaptureDir = async () => {
   const captureDir = `${CAPTURE_FOLDER}`;
@@ -42,6 +51,23 @@ export const CaptureCronJob = {
         `${activeCaptureDir}/${c.captureName}-${nowMs}.jpg`,
         snapshot,
       );
+    }
+  },
+};
+
+export const CameraTimeoutCronJob = {
+  name: "camera timeout",
+  intervalMs: 2 * MILLISECONDS_IN_MINUTE,
+  fn: async () => {
+    const c = await getConfig();
+    if (
+      !(
+        c.captureEnable ||
+        isStreamingVideo() ||
+        getLastUserDisconnectedMs() < 5 * MILLISECONDS_IN_MINUTE
+      )
+    ) {
+      stop(c.captureDevice);
     }
   },
 };

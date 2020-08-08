@@ -1,5 +1,10 @@
 import { MILLISECONDS_IN_SECOND, timeout } from "../common/time";
-import { CaptureCronJob, TiltCronJob, PanCronJob } from "./timelapse";
+import {
+  CaptureCronJob,
+  TiltCronJob,
+  PanCronJob,
+  CameraTimeoutCronJob,
+} from "./timelapse";
 
 export const DEFAULT_INTERVAL_MS = 15 * MILLISECONDS_IN_SECOND;
 
@@ -56,4 +61,9 @@ class Cron {
   }
 }
 
-export const cron = new Cron([CaptureCronJob, PanCronJob, TiltCronJob]);
+export const cron = new Cron([
+  CaptureCronJob,
+  CameraTimeoutCronJob,
+  PanCronJob,
+  TiltCronJob,
+]);

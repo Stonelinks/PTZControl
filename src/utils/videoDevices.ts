@@ -167,6 +167,7 @@ export const start = async (deviceId: string): Promise<void> => {
               setTimeout(captureOnce, fpsMs);
             } else {
               cam.stop(() => {});
+              cameraDevices[deviceId].initState = InitState.none;
             }
           });
         };
@@ -196,7 +197,7 @@ export const start = async (deviceId: string): Promise<void> => {
   });
 };
 
-export const stop = async (deviceId: string) => {
+export const stop = (deviceId: string) => {
   const { isOn } = getOrCreateCameraDevice(deviceId);
   if (isOn) {
     cameraDevices[deviceId].isOn = false;
