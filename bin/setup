@@ -31,3 +31,5 @@ if [ ! -f opt/node$YARN_VERSION/bin/yarn ]; then
   tar -C opt/yarn$YARN_VERSION -xzf $YARN_TMP_PATH --strip-components 1
   rm $YARN_TMP_PATH
 fi
+
+yarn setup
