@@ -59,15 +59,20 @@ interface State {
   out: boolean;
 }
 
+type KeyOrMouseEvent = any;
+// | KeyboardEvent
+// TODO why doesn't below work?
+// | MouseEvent<HTMLButtonElement, MouseEvent>;
+
 class VideoDeviceControl extends React.Component<Props, State> {
-  panLeftStart: () => void;
-  panLeftEnd: () => void;
-  panRightStart: () => void;
-  panRightEnd: () => void;
-  tiltUpStart: () => void;
-  tiltUpEnd: () => void;
-  tiltDownStart: () => void;
-  tiltDownEnd: () => void;
+  panLeftStart: (e: KeyOrMouseEvent) => void;
+  panLeftEnd: (e: KeyOrMouseEvent) => void;
+  panRightStart: (e: KeyOrMouseEvent) => void;
+  panRightEnd: (e: KeyOrMouseEvent) => void;
+  tiltUpStart: (e: KeyOrMouseEvent) => void;
+  tiltUpEnd: (e: KeyOrMouseEvent) => void;
+  tiltDownStart: (e: KeyOrMouseEvent) => void;
+  tiltDownEnd: (e: KeyOrMouseEvent) => void;
   zoomIn: any;
   zoomOut: any;
 
@@ -99,7 +104,8 @@ class VideoDeviceControl extends React.Component<Props, State> {
     axis: "pan" | "tilt",
     direction: "left" | "right" | "up" | "down",
   ) => {
-    return () => {
+    return (e: KeyOrMouseEvent) => {
+      e.preventDefault();
       if (!this.state[direction]) {
         const { onSetDeviceSpeedControlStart, deviceId } = this.props;
         console.log("start", axis, direction);
@@ -113,7 +119,8 @@ class VideoDeviceControl extends React.Component<Props, State> {
     axis: "pan" | "tilt",
     direction: "left" | "right" | "up" | "down",
   ) => {
-    return () => {
+    return (e: KeyOrMouseEvent) => {
+      e.preventDefault();
       const { onSetDeviceSpeedControlStop, deviceId } = this.props;
       console.log("stop", axis);
       onSetDeviceSpeedControlStop(deviceId, axis);
@@ -142,17 +149,37 @@ class VideoDeviceControl extends React.Component<Props, State> {
     mousetrap.bind("up", this.tiltUpEnd, "keyup");
     mousetrap.bind("down", this.tiltDownStart, "keydown");
     mousetrap.bind("down", this.tiltDownEnd, "keyup");
+    mousetrap.bind("a", this.panLeftStart, "keydown");
+    mousetrap.bind("a", this.panLeftEnd, "keyup");
+    mousetrap.bind("d", this.panRightStart, "keydown");
+    mousetrap.bind("d", this.panRightEnd, "keyup");
+    mousetrap.bind("w", this.tiltUpStart, "keydown");
+    mousetrap.bind("w", this.tiltUpEnd, "keyup");
+    mousetrap.bind("s", this.tiltDownStart, "keydown");
+    mousetrap.bind("s", this.tiltDownEnd, "keyup");
+
     mousetrap.bind("q", this.zoomIn);
-    mousetrap.bind("a", this.zoomOut);
+    mousetrap.bind("e", this.zoomOut);
+    mousetrap.bind("+", this.zoomIn);
+    mousetrap.bind("-", this.zoomOut);
+    mousetrap.bind("=", this.zoomIn);
   }
 
   componentWillUnmount() {
     mousetrap.unbind("q");
-    mousetrap.unbind("a");
+    mousetrap.unbind("e");
+    mousetrap.bind("+", this.zoomIn);
+    mousetrap.bind("=", this.zoomIn);
+    mousetrap.bind("-", this.zoomOut);
+
     mousetrap.unbind("left");
     mousetrap.unbind("right");
     mousetrap.unbind("up");
     mousetrap.unbind("down");
+    mousetrap.unbind("a");
+    mousetrap.unbind("d");
+    mousetrap.unbind("w");
+    mousetrap.unbind("s");
   }
 
   render() {
