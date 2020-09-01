@@ -49,30 +49,35 @@ const App = ({
   controlsDevice,
 }: Props) => {
   const [connectivityState, setConnectivityState] = React.useState(
-    CONNECTIVITY_STATE.unknown,
+    CONNECTIVITY_STATE.connected,
+    // CONNECTIVITY_STATE.unknown,
   );
 
+  // React.useEffect(() => {
+  //   (async () => {
+  //     switch (connectivityState) {
+  //       case CONNECTIVITY_STATE.unknown:
+  //         try {
+  //           const ping = await apiFetch("ping");
+  //           if (ping.pong === "pong") {
+  //             setConnectivityState(CONNECTIVITY_STATE.connected);
+  //             onFetchDevices();
+  //           } else {
+  //             reload();
+  //           }
+  //         } catch (e) {
+  //           setConnectivityState(CONNECTIVITY_STATE.disconnected);
+  //         }
+  //         break;
+  //       default:
+  //         break;
+  //     }
+  //   })();
+  // }, [connectivityState, onFetchDevices]);
+
   React.useEffect(() => {
-    (async () => {
-      switch (connectivityState) {
-        case CONNECTIVITY_STATE.unknown:
-          try {
-            const ping = await apiFetch("ping");
-            if (ping.pong === "pong") {
-              setConnectivityState(CONNECTIVITY_STATE.connected);
-              onFetchDevices();
-            } else {
-              reload();
-            }
-          } catch (e) {
-            setConnectivityState(CONNECTIVITY_STATE.disconnected);
-          }
-          break;
-        default:
-          break;
-      }
-    })();
-  }, [connectivityState, onFetchDevices]);
+    onFetchDevices();
+  }, []);
 
   return (
     <div>
