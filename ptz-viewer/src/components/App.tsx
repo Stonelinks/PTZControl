@@ -112,10 +112,8 @@ const App = ({
               <Match path={frontendPath("capture/:captureId")}>
                 {({ captureId }: { captureId: string }) => (
                   <div>
-                    <h2>Results</h2>
                     <CreateTimelapseButton captureId={captureId} />
                     <ResultsFileList captureId={captureId} />
-                    <h2>Files</h2>
                     <CaptureFileList captureId={captureId} />
                   </div>
                 )}

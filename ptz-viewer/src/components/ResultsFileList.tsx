@@ -3,7 +3,7 @@ import { connect, ConnectedProps } from "react-redux";
 import { RootState } from "../redux";
 import { apiCall } from "../redux/api/actions";
 import { BASE_URL } from "../utils/api";
-import { encode } from "../common/encode";
+import ExpandableSection from "./ExpandableSection";
 
 const mapState = (state: RootState) => ({
   getResultsFileList: state.api.getResultsFileList.value,
@@ -33,35 +33,42 @@ const ResultsFileList = ({
     onGetCaptureFiles(captureId);
   }, [onGetCaptureFiles]);
 
-  return (
-    <div>
-      {getResultsFileList && getResultsFileList.length
-        ? getResultsFileList.map((f: string) => (
-            <div
-              style={{
-                width: "calc(25% - 1px)",
-                margin: "0px -1px -1px 0px",
-                padding: "0px",
-                display: "inline-block",
-                border: "1px grey solid",
-              }}
-            >
-              {f.endsWith("mp4") ? (
-                <video style={{ width: "100%", height: "auto" }} controls>
-                  <source src={`${BASE_URL}/${f}`} type="video/mp4" />
-                </video>
-              ) : (
-                <img
-                  src={`${BASE_URL}/${f}`}
-                  style={{ width: "100%", height: "auto" }}
-                />
-              )}
-              <pre style={{ textAlign: "center" }}>{f}</pre>
-            </div>
-          ))
-        : null}
-      {/* <Debug d={getResultsFileList} /> */}
-    </div>
+  const hasFiles = getResultsFileList && getResultsFileList.length;
+
+  const t = hasFiles
+    ? `${getResultsFileList.length} timelapses`
+    : "No timelapses computed yet";
+
+  const title = <h2>{t}</h2>;
+
+  return hasFiles ? (
+    <ExpandableSection title={title} startOpened={true}>
+      {getResultsFileList.map((f: string) => (
+        <div
+          style={{
+            width: "calc(25% - 1px)",
+            margin: "0px -1px -1px 0px",
+            padding: "0px",
+            display: "inline-block",
+            border: "1px grey solid",
+          }}
+        >
+          {f.endsWith("mp4") ? (
+            <video style={{ width: "100%", height: "auto" }} controls>
+              <source src={`${BASE_URL}/${f}`} type="video/mp4" />
+            </video>
+          ) : (
+            <img
+              src={`${BASE_URL}/${f}`}
+              style={{ width: "100%", height: "auto" }}
+            />
+          )}
+          <pre style={{ textAlign: "center" }}>{f}</pre>
+        </div>
+      ))}
+    </ExpandableSection>
+  ) : (
+    title
   );
 };
 
