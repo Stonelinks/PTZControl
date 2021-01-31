@@ -63,8 +63,8 @@ const CaptureFileList = ({ getCaptures, onGetCaptures }: Props) => {
                       `Duration: ${moment
                         .duration(endTimeMs - startTimeMs)
                         .humanize()}`,
-                      `Start: ${moment(startTimeMs).format("M/D/YY H:mma")}`,
-                      `End: ${moment(endTimeMs).format("M/D/YY H:mma")}`,
+                      `Start: ${moment(startTimeMs).format("M/D/YY h:mma")}`,
+                      `End: ${moment(endTimeMs).format("M/D/YY h:mma")}`,
                     ].join("\n")}
                   </pre>
                 </Link>

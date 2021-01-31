@@ -6,13 +6,16 @@ import { decode } from "../common/encode";
 import { MILLISECONDS_IN_MINUTE, MILLISECONDS_IN_SECOND } from "../common/time";
 import {
   deleteFile,
-  getChronologicalFileList,
   listDirectory,
   stat,
   writeFileAsync,
 } from "../utils/files";
 import { cachedDownsize, fileIsImage } from "../utils/images";
-import { getCaptureDir } from "../utils/timelapse";
+import {
+  getCaptureDir,
+  getChronologicalResultsList,
+  getChronologicalTimelapseImageList,
+} from "../utils/timelapse";
 
 ffmpeg.setFfmpegPath(ffmpegPath);
 
@@ -27,30 +30,21 @@ export const registerTimelapseRoutes = async (app: Application) => {
     // tslint:disable-next-line:prefer-for-of
     for (let i = 0; i < captureDirs.length; i++) {
       const c = captureDirs[i];
-      const files = await listDirectory(`${captureDir}/${c}`);
+      const files = await getChronologicalTimelapseImageList(
+        `${captureDir}/${c}`,
+      );
 
       let numImageFiles = 0;
-      let startTimeMs = Infinity;
+      let startTimeMs = 0;
       let endTimeMs = 0;
 
-      // tslint:disable-next-line:prefer-for-of
-      for (let j = 0; j < files.length; j++) {
-        const f = files[j];
+      if (files.length) {
+        const first = await stat(`${captureDir}/${c}/${files[0]}`);
+        const last = await stat(`${captureDir}/${c}/${files.pop()}`);
 
-        const s = await stat(`${captureDir}/${c}/${f}`);
-        if (s.isFile()) {
-          const { birthtimeMs } = s;
-          if (birthtimeMs < startTimeMs) {
-            startTimeMs = birthtimeMs;
-          }
-          if (birthtimeMs > endTimeMs) {
-            endTimeMs = birthtimeMs;
-          }
-        }
-
-        if (fileIsImage(f)) {
-          numImageFiles++;
-        }
+        startTimeMs = first.mtimeMs;
+        endTimeMs = last.mtimeMs;
+        numImageFiles = files.length;
       }
 
       ret.push({
@@ -67,23 +61,19 @@ export const registerTimelapseRoutes = async (app: Application) => {
   app.get("/timelapse/capture/:captureId/list", async (req, res) => {
     const captureDir = await getCaptureDir();
     const captureId = decode(req.params.captureId);
-    const files = await getChronologicalFileList(`${captureDir}/${captureId}`);
-    res.send(
-      JSON.stringify(files.map(f => `${captureId}/${f}`).filter(fileIsImage)),
+    const files = await getChronologicalTimelapseImageList(
+      `${captureDir}/${captureId}`,
     );
+    res.send(JSON.stringify(files.map(f => `${captureId}/${f}`)));
   });
 
   app.get("/timelapse/capture/:captureId/listResults", async (req, res) => {
     const captureDir = await getCaptureDir();
     const captureId = decode(req.params.captureId);
-    const files = await getChronologicalFileList(`${captureDir}/${captureId}`);
-    res.send(
-      JSON.stringify(
-        files
-          .map(f => `${captureId}/${f}`)
-          .filter(f => f.endsWith("gif") || f.endsWith("mp4")),
-      ),
+    const files = await getChronologicalResultsList(
+      `${captureDir}/${captureId}`,
     );
+    res.send(JSON.stringify(files.map(f => `${captureId}/${f}`)));
   });
 
   app.get("/timelapse/capture/:captureId/create/:delayMs", async (req, res) => {
@@ -105,8 +95,8 @@ export const registerTimelapseRoutes = async (app: Application) => {
     res.writeHead(200, { "Content-Type": "text/plain" });
     log("begin timelapse creation");
 
-    let files = await getChronologicalFileList(`${thisCaptureDir}`);
-    files = files.map(f => `${thisCaptureDir}/${f}`).filter(fileIsImage);
+    let files = await getChronologicalTimelapseImageList(`${thisCaptureDir}`);
+    files = files.map(f => `${thisCaptureDir}/${f}`);
 
     const fileListPath = `/tmp/timelapse-out-${nowMs}.txt`;
     let ffmpegInstructions = "";

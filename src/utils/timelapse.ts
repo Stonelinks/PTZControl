@@ -6,7 +6,7 @@ import {
   MILLISECONDS_IN_MINUTE,
 } from "../common/time";
 import { getConfig } from "./config";
-import { writeFileAsync } from "./files";
+import { getChronologicalFileList, writeFileAsync } from "./files";
 import {
   stop,
   getOrCreateCameraDevice,
@@ -19,6 +19,7 @@ import {
   isStreamingVideo,
   getLastUserDisconnectedMs,
 } from "../routes/videoDevices";
+import { fileIsGifOrMovie, fileIsImage } from "./images";
 
 export const getCaptureDir = async () => {
   const captureDir = `${CAPTURE_FOLDER}`;
@@ -32,6 +33,16 @@ export const getActiveCaptureDir = async () => {
   const activeCaptureDir = `${captureDir}/${c.captureName}`;
   shell.mkdir("-p", activeCaptureDir);
   return activeCaptureDir;
+};
+
+export const getChronologicalTimelapseImageList = async (dir: string) => {
+  const files = await getChronologicalFileList(dir);
+  return files.filter(fileIsImage);
+};
+
+export const getChronologicalResultsList = async (dir: string) => {
+  const files = await getChronologicalFileList(dir);
+  return files.filter(fileIsGifOrMovie);
 };
 
 export const CaptureCronJob = {

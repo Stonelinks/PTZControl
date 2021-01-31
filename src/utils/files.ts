@@ -59,11 +59,7 @@ export const getChronologicalFileList = async (
 
   // sort in chronological order
   stats.sort((a, b) => {
-    return a.birthtimeMs > b.birthtimeMs
-      ? 1
-      : b.birthtimeMs > a.birthtimeMs
-      ? -1
-      : 0;
+    return a.mtimeMs > b.mtimeMs ? 1 : b.mtimeMs > a.mtimeMs ? -1 : 0;
   });
 
   return stats.map(s => s.name);
