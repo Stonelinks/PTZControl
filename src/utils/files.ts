@@ -36,6 +36,8 @@ export const listDirectory = promisify(fs.readdir);
 
 export const stat = promisify(fs.stat);
 
+export const deleteFile = promisify(fs.unlink);
+
 export const getChronologicalFileList = async (
   path: string,
 ): Promise<string[]> => {

@@ -39,17 +39,23 @@ const ResultsFileList = ({
         ? getResultsFileList.map((f: string) => (
             <div
               style={{
-                width: "calc(20% - 1px)",
+                width: "calc(25% - 1px)",
                 margin: "0px -1px -1px 0px",
                 padding: "0px",
                 display: "inline-block",
                 border: "1px grey solid",
               }}
             >
-              <img
-                src={`${BASE_URL}/${f}`}
-                style={{ width: "100%", height: "auto" }}
-              />
+              {f.endsWith("mp4") ? (
+                <video style={{ width: "100%", height: "auto" }} controls>
+                  <source src={`${BASE_URL}/${f}`} type="video/mp4" />
+                </video>
+              ) : (
+                <img
+                  src={`${BASE_URL}/${f}`}
+                  style={{ width: "100%", height: "auto" }}
+                />
+              )}
               <pre style={{ textAlign: "center" }}>{f}</pre>
             </div>
           ))

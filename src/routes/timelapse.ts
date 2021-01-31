@@ -1,12 +1,19 @@
-import * as sharp from "sharp";
 import { Application } from "express";
+import * as ffmpegPath from "ffmpeg-static";
+import * as ffmpeg from "fluent-ffmpeg";
 import { THUMBS_FOLDER_NAME } from "../common/constants";
 import { decode } from "../common/encode";
-import { listDirectory, stat, getChronologicalFileList } from "../utils/files";
+import { MILLISECONDS_IN_MINUTE, MILLISECONDS_IN_SECOND } from "../common/time";
+import {
+  deleteFile,
+  getChronologicalFileList,
+  listDirectory,
+  stat,
+  writeFileAsync,
+} from "../utils/files";
 import { getCaptureDir } from "../utils/timelapse";
-import * as GifEncoder from "gif-encoder";
-import * as fs from "fs";
-import { getSize } from "../utils/images";
+
+ffmpeg.setFfmpegPath(ffmpegPath);
 
 export const registerTimelapseRoutes = async (app: Application) => {
   app.get("/timelapse/capture/list", async (req, res) => {
@@ -73,7 +80,9 @@ export const registerTimelapseRoutes = async (app: Application) => {
     const files = await getChronologicalFileList(`${captureDir}/${captureId}`);
     res.send(
       JSON.stringify(
-        files.map(f => `${captureId}/${f}`).filter(f => f.endsWith("gif")),
+        files
+          .map(f => `${captureId}/${f}`)
+          .filter(f => f.endsWith("gif") || f.endsWith("mp4")),
       ),
     );
   });
@@ -87,51 +96,55 @@ export const registerTimelapseRoutes = async (app: Application) => {
       .map(f => `${captureDir}/${captureId}/${f}`)
       .filter(f => f.endsWith("jpg"));
 
-    // let done = false;
-    // req.on("close", () => {
-    //   console.log("aborted");
-    //   done = true;
-    // });
-
     const nowMs = Date.now();
-    const outputFile = fs.createWriteStream(
-      `${captureDir}/${captureId}/out-${nowMs}.gif`,
-    );
-    const { width, height } = getSize(files[0]);
-    const gif = new GifEncoder(width, height);
-    gif.pipe(outputFile);
-    gif.setDelay(delayMs);
-    gif.setQuality(100);
-    gif.setRepeat(0);
-    gif.writeHeader();
+    const outPath = `${captureDir}/${captureId}/out-${nowMs}.mp4`;
 
-    // tslint:disable-next-line:prefer-for-of
-    for (let i = 0; i < files.length; i++) {
-      const f = files[i];
-      const msg = `(${parseInt(
-        (i / files.length) * 100 + "",
-        10,
-      )}%) adding frame ${f}`;
-      console.log(msg);
-      res.write(msg + "\n");
+    const log = (s: string) => {
+      console.log(s);
+      res.write(`${s}\n`);
+    };
 
-      const rgba = await sharp(f)
-        .ensureAlpha()
-        .raw()
-        .toBuffer();
+    res.writeHead(200, { "Content-Type": "text/plain" });
+    log("begin timelapse creation");
 
-      gif.addFrame(rgba);
+    const fileListPath = `/tmp/timelapse-out-${nowMs}.txt`;
+    let ffmpegInstructions = "";
 
-      // if (done) {
-      //   gif.finish();
-      //   res.write("aborted");
-      //   res.end();
-      //   return;
-      // }
-    }
+    const durationSeconds = `${parseInt(delayMs, 10) / MILLISECONDS_IN_SECOND}`;
+    files.forEach(file => {
+      ffmpegInstructions += `file '${file}'\n`;
+      ffmpegInstructions += `duration ${durationSeconds}\n`;
+    });
 
-    gif.finish();
-    res.write("done! you should be automatically redirected");
-    res.end();
+    await writeFileAsync(fileListPath, ffmpegInstructions);
+    log(`made a list of ${files.length} images to ${fileListPath}`);
+
+    ffmpeg()
+      .addInput(fileListPath)
+      .inputOptions(["-f", "concat", "-safe", "0"])
+      .videoCodec("libx264")
+      .noAudio()
+      .on("start", command => {
+        log("ffmpeg process started: " + command);
+      })
+      .on("progress", progress => {
+        log("processing: " + parseInt(progress.percent, 10) + "% done");
+      })
+      .on("error", (err, stdout, stderr) => {
+        log("Error: " + err);
+        log("ffmpeg stderr: " + stderr);
+
+        setTimeout(() => {
+          res.end();
+        }, MILLISECONDS_IN_MINUTE / 2);
+      })
+      .on("end", async () => {
+        log("video created in: " + outPath);
+        log("done! you should be automatically redirected");
+
+        res.end();
+        await deleteFile(fileListPath);
+      })
+      .save(outPath);
   });
 };
