@@ -63,7 +63,27 @@ const ResultsFileList = ({
               style={{ width: "100%", height: "auto" }}
             />
           )}
-          <pre style={{ textAlign: "center" }}>{f}</pre>
+
+          <div>
+            <pre
+              style={{
+                marginLeft: "10px",
+                float: "left",
+              }}
+            >
+              {f.split("/").pop()}
+            </pre>
+            <pre
+              style={{
+                marginRight: "10px",
+                float: "right",
+              }}
+            >
+              <a target="_blank" href={`${BASE_URL}/${f}`}>
+                Download
+              </a>
+            </pre>
+          </div>
         </div>
       ))}
     </ExpandableSection>
