@@ -23,7 +23,7 @@ const CreateTimelapsePage = ({ captureId }: Props) => {
   const [response, setResponse] = React.useState("");
 
   React.useEffect(() => {
-    const delayMs = window.prompt("Enter frame delay (ms)", "10");
+    const delayMs = window.prompt("Enter frame delay (ms)", "1000");
 
     const url = fillInUrlTemplate(
       `${BASE_URL}/timelapse/capture/:captureId/create/:delayMs`,
@@ -50,7 +50,7 @@ const CreateTimelapsePage = ({ captureId }: Props) => {
     xhr.send();
   }, [setResponse]);
 
-  return <pre>{response}</pre>;
+  return <pre style={{ whiteSpace: "pre-wrap" }}>{response}</pre>;
 };
 
 export default CreateTimelapsePage;

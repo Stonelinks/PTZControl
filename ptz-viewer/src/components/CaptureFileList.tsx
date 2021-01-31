@@ -39,7 +39,7 @@ const CaptureList = ({
         ? getCaptureFiles.map((f: string) => (
             <div
               style={{
-                width: "calc(20% - 1px)",
+                width: "calc(25% - 1px)",
                 margin: "0px -1px -1px 0px",
                 padding: "0px",
                 display: "inline-block",

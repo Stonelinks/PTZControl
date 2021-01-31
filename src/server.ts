@@ -5,14 +5,13 @@ import * as express from "express";
 import { SERVER_PORT, VIEWER_FOLDER, CAPTURE_FOLDER } from "./common/constants";
 import { initConfig } from "./utils/config";
 import { cron } from "./utils/cron";
-import { Application } from "express";
 import { registerVideoDeviceRoutes } from "./routes/videoDevices";
 import { registerConfigRoutes } from "./routes/config";
 import { registerTimelapseRoutes } from "./routes/timelapse";
 import { getThumbnail } from "./utils/images";
 import { decode } from "./common/encode";
 
-const app: Application = express();
+const app: express.Application = express();
 
 app.use(express.static(VIEWER_FOLDER));
 app.use(express.static(CAPTURE_FOLDER));

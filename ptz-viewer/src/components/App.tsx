@@ -103,6 +103,7 @@ const App = ({
                 {({ captureId }: { captureId: string }) => (
                   <div>
                     <h2>Please wait...</h2>
+                    <p>You will be automatically redirected</p>
                     <CreateTimelapsePage captureId={captureId} />
                   </div>
                 )}

@@ -46,7 +46,7 @@ const CaptureFileList = ({ getCaptures, onGetCaptures }: Props) => {
             }) => (
               <div
                 style={{
-                  width: "calc(20% - 1px)",
+                  width: "calc(25% - 1px)",
                   margin: "0px -1px -1px 0px",
                   padding: "0px",
                   display: "inline-block",
