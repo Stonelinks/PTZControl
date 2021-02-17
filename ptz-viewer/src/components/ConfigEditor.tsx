@@ -1,16 +1,17 @@
 import React from "react";
 import { connect, ConnectedProps } from "react-redux";
+import { nothing } from "../common/nothing";
 import { Config } from "../common/types";
 import { RootState } from "../redux";
 import { apiCall } from "../redux/api/actions";
-import DeviceConfigSelector from "./DeviceConfigSelector";
-import ConfigStringInput from "./ConfigStringInput";
 import ConfigBooleanInput from "./ConfigBooleanInput";
 import ConfigNumberInput from "./ConfigNumberInput";
 import ConfigSelectionInput from "./ConfigSelectionInput";
+import ConfigStringInput from "./ConfigStringInput";
+import DeviceConfigSelector from "./DeviceConfigSelector";
 
 const mapState = (state: RootState) => ({
-  config: state.api.getConfig.value as Config,
+  config: state.api.getConfig.value as Config | typeof nothing,
 });
 
 const mapDispatch = {
@@ -25,89 +26,157 @@ interface OwnProps {}
 
 type Props = PropsFromRedux & OwnProps;
 
+enum INPUT_TYPES {
+  HEADING,
+  DEVICE,
+  STRING,
+  BOOLEAN,
+  NUMBER,
+  SELECT,
+}
+
+interface ConfigEditorItem {
+  type: INPUT_TYPES;
+  displayText: string;
+  configKey?: keyof Config;
+  options?: string[];
+  positiveOnly?: boolean;
+}
+
+const ConfigEditorItems: ConfigEditorItem[] = [
+  { type: INPUT_TYPES.HEADING, displayText: "Device config" },
+  {
+    type: INPUT_TYPES.DEVICE,
+    configKey: "captureDevice",
+    displayText: "Capture device",
+  },
+  {
+    type: INPUT_TYPES.DEVICE,
+    configKey: "controlsDevice",
+    displayText: "Controls device",
+  },
+  { type: INPUT_TYPES.HEADING, displayText: "Capture config" },
+
+  {
+    type: INPUT_TYPES.STRING,
+    configKey: "captureName",
+    displayText: "Capture Name",
+  },
+  {
+    type: INPUT_TYPES.BOOLEAN,
+    configKey: "captureEnable",
+    displayText: "Capture Enable",
+  },
+  {
+    type: INPUT_TYPES.NUMBER,
+    configKey: "captureRateMs",
+    displayText: "Capture Rate (ms)",
+    positiveOnly: true,
+  },
+  { type: INPUT_TYPES.HEADING, displayText: "Pan config" },
+  {
+    type: INPUT_TYPES.BOOLEAN,
+    configKey: "panStepEnable",
+    displayText: "Pan Enable",
+  },
+  {
+    type: INPUT_TYPES.NUMBER,
+    configKey: "panStepRateMs",
+    displayText: "Pan Rate (ms)",
+    positiveOnly: true,
+  },
+  {
+    type: INPUT_TYPES.SELECT,
+    configKey: "panStepDirection",
+    displayText: "Pan step direction",
+    options: ["left", "right"],
+  },
+  { type: INPUT_TYPES.HEADING, displayText: "Tilt config" },
+  {
+    type: INPUT_TYPES.BOOLEAN,
+    configKey: "tiltStepEnable",
+    displayText: "Tilt Enable",
+  },
+  {
+    type: INPUT_TYPES.NUMBER,
+    configKey: "tiltStepRateMs",
+    displayText: "Tilt Rate (ms)",
+    positiveOnly: true,
+  },
+  {
+    type: INPUT_TYPES.SELECT,
+    configKey: "tiltStepDirection",
+    displayText: "Tilt step direction",
+    options: ["up", "down"],
+  },
+];
+
 const ConfigEditor = ({ config, onGetConfig }: Props) => {
   React.useEffect(() => {
     onGetConfig();
   }, [onGetConfig]);
 
-  const deviceConfigKeys: { displayText: string; configKey: keyof Config }[] = [
-    { configKey: "captureDevice", displayText: "Capture device" },
-    { configKey: "controlsDevice", displayText: "Controls device" },
-  ];
+  if (config === nothing) {
+    return null;
+  }
 
   return (
     <div>
-      <h3>Device config</h3>
-      {deviceConfigKeys.map(({ displayText, configKey }) => (
-        <DeviceConfigSelector
-          configKey={configKey}
-          displayText={displayText}
-          configValue={config[configKey]}
-          onChange={onGetConfig}
-        />
-      ))}
-      <h3>Capture config</h3>
-      <ConfigStringInput
-        configKey="captureName"
-        displayText="Capture Name"
-        configValue={config.captureName}
-        onChange={onGetConfig}
-      />
-      <ConfigBooleanInput
-        configKey="captureEnable"
-        displayText="Capture Enable"
-        configValue={config.captureEnable}
-        onChange={onGetConfig}
-      />
-      <ConfigNumberInput
-        configKey="captureRateMs"
-        displayText="Capture Rate (ms)"
-        configValue={config.captureRateMs}
-        onChange={onGetConfig}
-        positiveOnly
-      />
-      <h3>Pan config</h3>
-      <ConfigBooleanInput
-        configKey="panStepEnable"
-        displayText="Pan Enable"
-        configValue={config.panStepEnable}
-        onChange={onGetConfig}
-      />
-      <ConfigNumberInput
-        configKey="panStepRateMs"
-        displayText="Pan Rate (ms)"
-        configValue={config.panStepRateMs}
-        onChange={onGetConfig}
-        positiveOnly
-      />
-      <ConfigSelectionInput
-        configKey="panStepDirection"
-        displayText="Pan step direction"
-        options={["left", "right"]}
-        configValue={config.panStepDirection}
-        onChange={onGetConfig}
-      />
-      <h3>Tilt config</h3>
-      <ConfigBooleanInput
-        configKey="tiltStepEnable"
-        displayText="Tilt Enable"
-        configValue={config.tiltStepEnable}
-        onChange={onGetConfig}
-      />
-      <ConfigNumberInput
-        configKey="tiltStepRateMs"
-        displayText="Tilt Rate (ms)"
-        configValue={config.tiltStepRateMs}
-        onChange={onGetConfig}
-        positiveOnly
-      />
-      <ConfigSelectionInput
-        configKey="tiltStepDirection"
-        displayText="Tilt step direction"
-        options={["up", "down"]}
-        configValue={config.tiltStepDirection}
-        onChange={onGetConfig}
-      />
+      {ConfigEditorItems.map(
+        ({ type, displayText, configKey, options, positiveOnly }) => {
+          configKey = configKey || "";
+          options = options || [];
+          positiveOnly = positiveOnly || false;
+          switch (type) {
+            case INPUT_TYPES.HEADING:
+              return <h3>{displayText}</h3>;
+            case INPUT_TYPES.DEVICE:
+              return (
+                <DeviceConfigSelector
+                  configKey={configKey}
+                  displayText={displayText}
+                  configValue={config[configKey]}
+                />
+              );
+            case INPUT_TYPES.STRING:
+              return (
+                <ConfigStringInput
+                  configKey={configKey}
+                  displayText={displayText}
+                  configValue={config[configKey]}
+                />
+              );
+            case INPUT_TYPES.BOOLEAN:
+              return (
+                <ConfigBooleanInput
+                  configKey={configKey}
+                  displayText={displayText}
+                  configValue={config[configKey]}
+                />
+              );
+            case INPUT_TYPES.NUMBER:
+              return (
+                <ConfigNumberInput
+                  configKey={configKey}
+                  displayText={displayText}
+                  configValue={config[configKey]}
+                  positiveOnly={positiveOnly}
+                />
+              );
+            case INPUT_TYPES.SELECT:
+              return (
+                <ConfigSelectionInput
+                  configKey={configKey}
+                  displayText={displayText}
+                  configValue={config[configKey]}
+                  options={options}
+                />
+              );
+            default:
+              return null;
+          }
+        },
+      )}
     </div>
   );
 };

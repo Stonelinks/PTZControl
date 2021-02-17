@@ -1,13 +1,11 @@
 import React from "react";
 import { connect, ConnectedProps } from "react-redux";
+import { isNumeric, isPositiveNumeric } from "../common/number";
 import { Config } from "../common/types";
 import { RootState } from "../redux";
 import { apiCall } from "../redux/api/actions";
-import { isNumeric, isPositiveNumeric } from "../common/number";
 
-const mapState = (state: RootState) => ({
-  devices: state.api.devices.value as string[],
-});
+const mapState = (state: RootState) => ({});
 
 const mapDispatch = {
   onSetConfigValue: (configKey: keyof Config, configValue: any) =>
@@ -22,7 +20,6 @@ interface OwnProps {
   configKey: keyof Config;
   configValue: any; // TODO
   displayText: string;
-  onChange: (v: string) => void;
   positiveOnly?: boolean;
 }
 
@@ -32,10 +29,10 @@ const ConfigNumberInput = ({
   configKey,
   configValue,
   displayText,
-  onChange,
   onSetConfigValue,
   positiveOnly,
 }: Props) => {
+  const [value, setValue] = React.useState(configValue);
   const [isNumber, setIsNumber] = React.useState(true);
 
   const handleChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -47,8 +44,8 @@ const ConfigNumberInput = ({
       setIsNumber(false);
     } else {
       setIsNumber(true);
+      setValue(newConfigValue);
       await onSetConfigValue(configKey, newConfigValue);
-      onChange(newConfigValue);
     }
   };
 
@@ -56,7 +53,7 @@ const ConfigNumberInput = ({
     <div>
       <label>
         {displayText}
-        <input value={configValue} onChange={handleChange} />
+        <input value={value} onChange={handleChange} />
         {!isNumber ? (
           <p style={{ display: "inline-block", color: "red" }}>
             must be a{positiveOnly ? " positive" : ""} number

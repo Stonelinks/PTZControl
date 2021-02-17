@@ -22,7 +22,6 @@ interface OwnProps {
   configKey: keyof Config;
   configValue: any; // TODO
   displayText: string;
-  onChange: (v: string) => void;
 }
 
 type Props = PropsFromRedux & OwnProps;
@@ -33,9 +32,10 @@ const DeviceConfigSelector = ({
   configKey,
   configValue,
   displayText,
-  onChange,
   onSetConfigValue,
 }: Props) => {
+  const [value, setValue] = React.useState(configValue);
+
   React.useEffect(() => {
     onFetchDevices();
   }, [onFetchDevices]);
@@ -46,15 +46,15 @@ const DeviceConfigSelector = ({
 
   const handleChange = async (e: React.ChangeEvent<HTMLSelectElement>) => {
     const newConfigValue = e.target.value as any;
+    setValue(newConfigValue);
     await onSetConfigValue(configKey, newConfigValue);
-    onChange(newConfigValue);
   };
 
   return (
     <div>
       <label>
         {displayText}
-        <select value={configValue} onChange={handleChange}>
+        <select value={value} onChange={handleChange}>
           {devices.map(d => (
             <option key={d} value={d}>
               {d}

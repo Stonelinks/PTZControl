@@ -4,9 +4,7 @@ import { Config } from "../common/types";
 import { RootState } from "../redux";
 import { apiCall } from "../redux/api/actions";
 
-const mapState = (state: RootState) => ({
-  devices: state.api.devices.value as string[],
-});
+const mapState = (state: RootState) => ({});
 
 const mapDispatch = {
   onSetConfigValue: (configKey: keyof Config, configValue: any) =>
@@ -21,7 +19,6 @@ interface OwnProps {
   configKey: keyof Config;
   configValue: any; // TODO
   displayText: string;
-  onChange: (v: string) => void;
 }
 
 type Props = PropsFromRedux & OwnProps;
@@ -30,20 +27,21 @@ const ConfigStringInput = ({
   configKey,
   configValue,
   displayText,
-  onChange,
   onSetConfigValue,
 }: Props) => {
+  const [value, setValue] = React.useState(configValue);
+
   const handleChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const newConfigValue = e.target.value;
+    setValue(newConfigValue);
     await onSetConfigValue(configKey, newConfigValue);
-    onChange(newConfigValue);
   };
 
   return (
     <div>
       <label>
         {displayText}
-        <input value={configValue} onChange={handleChange} />
+        <input value={value} onChange={handleChange} />
       </label>
     </div>
   );
