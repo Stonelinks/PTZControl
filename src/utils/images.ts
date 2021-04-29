@@ -82,7 +82,9 @@ export const cachedDownsize = makeCachedFn(
 );
 
 export const fileIsImage = (f: string) =>
-  f.endsWith("jpg") || f.endsWith("png");
+  f.toLowerCase().endsWith("jpg") ||
+  f.toLowerCase().endsWith("jpeg") ||
+  f.toLowerCase().endsWith("png");
 
 export const fileIsGifOrMovie = (f: string) =>
-  f.endsWith("gif") || f.endsWith("mp4");
+  f.toLowerCase().endsWith("gif") || f.toLowerCase().endsWith("mp4");
