@@ -85,7 +85,7 @@ const App = ({
         <div>
           <div style={{ display: "flex", borderBottom: "1px solid black" }}>
             <div style={{ flex: "1" }}>
-              <h1>PTZ Control</h1>
+              <h1>Timelapse</h1>
             </div>
           </div>
 

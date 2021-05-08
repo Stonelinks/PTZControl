@@ -1,6 +1,6 @@
-# PTZ Controls
+# Timelapse
 
-Small webapp to control a PTZ camera
+Small webapp to control and make timelapses with cameras
 
 ## Use
 

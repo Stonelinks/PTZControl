@@ -38,7 +38,7 @@ COPY . /usr/src/app/
 
 RUN install_packages jq
 RUN source .envrc && setup
-RUN source .envrc && PUBLIC_URL=/ptz yarn build
+RUN source .envrc && PUBLIC_URL=/timelapse yarn build
 
 # FROM balenalib/%%BALENA_MACHINE_NAME%%-ubuntu-node:12-bionic-run
 

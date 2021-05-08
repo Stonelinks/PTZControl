@@ -1,8 +1,8 @@
 {
-  "name": "PTZControl",
+  "name": "Timelapse",
   "version": "1.0.0",
   "main": "",
-  "repository": "git@github.com:Stonelinks/PTZControl.git",
+  "repository": "git@github.com:Stonelinks/Timelapse.git",
   "author": "Lucas Doyle <lucas.p.doyle@gmail.com>",
   "license": "MIT",
   "engines": {
@@ -11,16 +11,16 @@
   },
   "private": true,
   "scripts": {
-    "build": "cd ptz-viewer && yarn build",
-    "clean": "rm -rf yarn.lock node_modules && cd ptz-viewer && rm -rf yarn.lock node_modules build",
-    "dev-client": "cd ptz-viewer && yarn dev-start",
+    "build": "cd timelapse-viewer && yarn build",
+    "clean": "rm -rf yarn.lock node_modules && cd timelapse-viewer && rm -rf yarn.lock node_modules build",
+    "dev-client": "cd timelapse-viewer && yarn dev-start",
     "dev-server": "ts-node-dev --no-notify src/server.ts",
     "dev": "yarn sync-common && concurrently \"yarn dev-server\" \"yarn dev-client\"",
     "fix": "fix-lint",
     "lint": "fix-lint",
     "reset": "yarn clean && yarn setup",
     "scripts": "cat package.json | jq .scripts",
-    "setup": "yarn && yarn sync-common && cd ptz-viewer && yarn",
+    "setup": "yarn && yarn sync-common && cd timelapse-viewer && yarn",
     "sync-common": "sync-common",
     "start-server": "ts-node src/server.ts",
     "start": "yarn setup && yarn sync-common && yarn build && concurrently \"yarn start-server\" \"python -m webbrowser http://localhost:4001\""

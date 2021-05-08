@@ -12,5 +12,5 @@
   },
   "rulesDirectory": ["node_modules/tslint-microsoft-contrib"],
   "include": ["**/*"],
-  "exclude": ["node_modules", "ptz-viewer"]
+  "exclude": ["node_modules", "timelapse-viewer"]
 }

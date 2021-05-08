@@ -18,5 +18,5 @@ find . \
 
 export FORCE_COLOR=0
 tslint -p . --fix
-cd ptz-viewer
+cd timelapse-viewer
 tslint -p . --fix
