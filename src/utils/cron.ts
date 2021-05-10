@@ -1,3 +1,4 @@
+import { ENABLE_PTZ } from "../common/constants";
 import { MILLISECONDS_IN_SECOND, timeout } from "../common/time";
 import {
   CaptureCronJob,
@@ -61,9 +62,11 @@ class Cron {
   }
 }
 
-export const cron = new Cron([
-  CaptureCronJob,
-  CameraTimeoutCronJob,
-  PanCronJob,
-  TiltCronJob,
-]);
+const crons = [CaptureCronJob, CameraTimeoutCronJob];
+
+if (ENABLE_PTZ) {
+  crons.push(PanCronJob);
+  crons.push(TiltCronJob);
+}
+
+export const cron = new Cron(crons);

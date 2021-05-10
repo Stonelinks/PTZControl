@@ -5,6 +5,7 @@ import { connect, ConnectedProps } from "react-redux";
 import { MILLISECONDS_IN_SECOND } from "../common/time";
 import { RootState } from "../redux";
 import { apiCall } from "../redux/api/actions";
+import RenderIfPtzEnabled from "../utils/RenderIfPtzEnabled";
 import {
   FaChevronDown,
   FaChevronUp,
@@ -264,4 +265,4 @@ class VideoDeviceControl extends React.Component<Props, State> {
   }
 }
 
-export default connector(VideoDeviceControl);
+export default RenderIfPtzEnabled(connector(VideoDeviceControl));

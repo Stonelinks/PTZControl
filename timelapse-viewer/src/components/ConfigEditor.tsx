@@ -41,6 +41,7 @@ interface ConfigEditorItem {
   configKey?: keyof Config;
   options?: string[];
   positiveOnly?: boolean;
+  isPtzControlRelated?: boolean;
 }
 
 const ConfigEditorItems: ConfigEditorItem[] = [
@@ -54,6 +55,7 @@ const ConfigEditorItems: ConfigEditorItem[] = [
     type: INPUT_TYPES.DEVICE,
     configKey: "controlsDevice",
     displayText: "Controls device",
+    isPtzControlRelated: true,
   },
   { type: INPUT_TYPES.HEADING, displayText: "Capture config" },
 
@@ -73,41 +75,55 @@ const ConfigEditorItems: ConfigEditorItem[] = [
     displayText: "Capture Rate (ms)",
     positiveOnly: true,
   },
-  { type: INPUT_TYPES.HEADING, displayText: "Pan config" },
+  {
+    type: INPUT_TYPES.HEADING,
+    displayText: "Pan config",
+    isPtzControlRelated: true,
+  },
   {
     type: INPUT_TYPES.BOOLEAN,
     configKey: "panStepEnable",
     displayText: "Pan Enable",
+    isPtzControlRelated: true,
   },
   {
     type: INPUT_TYPES.NUMBER,
     configKey: "panStepRateMs",
     displayText: "Pan Rate (ms)",
     positiveOnly: true,
+    isPtzControlRelated: true,
   },
   {
     type: INPUT_TYPES.SELECT,
     configKey: "panStepDirection",
     displayText: "Pan step direction",
     options: ["left", "right"],
+    isPtzControlRelated: true,
   },
-  { type: INPUT_TYPES.HEADING, displayText: "Tilt config" },
+  {
+    type: INPUT_TYPES.HEADING,
+    displayText: "Tilt config",
+    isPtzControlRelated: true,
+  },
   {
     type: INPUT_TYPES.BOOLEAN,
     configKey: "tiltStepEnable",
     displayText: "Tilt Enable",
+    isPtzControlRelated: true,
   },
   {
     type: INPUT_TYPES.NUMBER,
     configKey: "tiltStepRateMs",
     displayText: "Tilt Rate (ms)",
     positiveOnly: true,
+    isPtzControlRelated: true,
   },
   {
     type: INPUT_TYPES.SELECT,
     configKey: "tiltStepDirection",
     displayText: "Tilt step direction",
     options: ["up", "down"],
+    isPtzControlRelated: true,
   },
 ];
 
@@ -123,10 +139,21 @@ const ConfigEditor = ({ config, onGetConfig }: Props) => {
   return (
     <div>
       {ConfigEditorItems.map(
-        ({ type, displayText, configKey, options, positiveOnly }) => {
+        ({
+          type,
+          displayText,
+          configKey,
+          options,
+          positiveOnly,
+          isPtzControlRelated,
+        }) => {
           configKey = configKey || "";
           options = options || [];
           positiveOnly = positiveOnly || false;
+          isPtzControlRelated = isPtzControlRelated || false;
+          if (isPtzControlRelated) {
+            return null;
+          }
           switch (type) {
             case INPUT_TYPES.HEADING:
               return <h3>{displayText}</h3>;
