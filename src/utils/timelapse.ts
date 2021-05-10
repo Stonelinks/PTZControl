@@ -66,8 +66,8 @@ export const CaptureCronJob = {
   },
 };
 
-export const CameraTimeoutCronJob = {
-  name: "camera timeout",
+export const CameraStreamTimeoutCronJob = {
+  name: "camera stream timeout",
   intervalMs: 2 * MILLISECONDS_IN_MINUTE,
   fn: async () => {
     const c = await getConfig();

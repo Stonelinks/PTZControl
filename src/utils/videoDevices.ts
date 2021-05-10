@@ -1,9 +1,6 @@
 import * as fs from "fs";
 import { timeout, MILLISECONDS_IN_SECOND } from "../common/time";
 import { EventEmitter } from "events";
-import * as NanoTimer from "nanotimer";
-
-const timer = new NanoTimer();
 
 // tslint:disable-next-line:no-var-requires
 const v4l2camera = require("v4l2camera");
@@ -352,24 +349,4 @@ export const moveAxisSpeedStop = (cam: Cam, axis: "pan" | "tilt") => {
     console.log(cam.device, axis, "stop");
     cam.controlSet(speedControl.id, 0);
   }
-};
-
-export const moveAxisSteps = async (
-  cam: Cam,
-  axis: "pan" | "tilt",
-  direction: "up" | "down" | "left" | "right",
-  steps = 1,
-) => {
-  return new Promise(res => {
-    moveAxisSpeedStart(cam, axis, direction);
-
-    timer.setTimeout(
-      () => {
-        moveAxisSpeedStop(cam, axis);
-        res();
-      },
-      "",
-      `${steps * 0.09 * MILLISECONDS_IN_SECOND}m`,
-    );
-  });
 };
