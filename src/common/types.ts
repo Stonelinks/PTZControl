@@ -1,6 +1,10 @@
 import { JsonObject } from "./json";
 
-export interface Config extends JsonObject {
+export interface VersionedConfigBase extends JsonObject {
+  version: number;
+}
+
+export interface ConfigV0 extends JsonObject {
   captureDevice: string;
   controlsDevice: string;
 
@@ -15,10 +19,19 @@ export interface Config extends JsonObject {
   tiltStepEnable: boolean;
   tiltStepRateMs: number;
   tiltStepDirection: "up" | "down";
-
-  // zoomStepEnable: boolean;
-  // zoomStepRateMs: number;
-  // zoomStepStart: number;
-  // zoomStepEnd: number;
-  // zoomStepDirection: "in" | "out";
 }
+
+export interface ConfigItem extends JsonObject {
+  captureDevice: string;
+  captureEnable: boolean;
+  captureName: string;
+  captureRateMs: number;
+}
+export interface ConfigV1 extends VersionedConfigBase {
+  version: 1;
+  configs: ConfigItem[];
+}
+
+export type AnyConfig = ConfigV0 | ConfigV1;
+
+export type Config = ConfigV1;
