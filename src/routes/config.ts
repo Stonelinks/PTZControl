@@ -19,6 +19,12 @@ export const registerConfigRoutes = async (app: Application) => {
       configValue = false;
     } else if (isNumeric(configValue as string)) {
       configValue = parseInt(configValue as string, 10);
+    } else if (
+      (configValue as string).length &&
+      configValue[0] === "[" &&
+      configValue[(configValue as string).length - 1] === "]"
+    ) {
+      configValue = JSON.parse(configValue as string);
     }
 
     await setConfigValue(configKey, configValue);

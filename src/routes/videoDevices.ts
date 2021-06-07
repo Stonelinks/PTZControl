@@ -13,24 +13,46 @@ import {
   setCameraDeviceZoom,
 } from "../utils/videoDevices";
 import { timeout, MILLISECONDS_IN_SECOND } from "../common/time";
+import { DeviceId } from "../common/types";
 
-let numVideoUsersConnected = 0;
-let lastUserDisconnectedMs = 0;
+const numVideoUsersConnected: Record<DeviceId, number> = {};
+const lastUserDisconnectedMs: Record<DeviceId, number> = {};
 
-export const getLastUserDisconnectedMs = () => lastUserDisconnectedMs;
-export const isStreamingVideo = () => numVideoUsersConnected > 0;
-
-const videoStreamUserConnected = () => {
-  console.log("user connected to video stream");
-  numVideoUsersConnected++;
+export const getLastUserDisconnectedMs = (deviceId: DeviceId) => {
+  const r = numVideoUsersConnected[deviceId];
+  if (!r) {
+    return 0;
+  } else {
+    return r;
+  }
 };
 
-const videoStreamUserDisconnected = () => {
-  console.log("user disconnected from video stream");
-  lastUserDisconnectedMs = Date.now();
-  numVideoUsersConnected--;
-  if (numVideoUsersConnected < 0) {
-    numVideoUsersConnected = 0;
+export const isStreamingVideo = (deviceId: DeviceId) => {
+  const r = numVideoUsersConnected[deviceId];
+  if (!r) {
+    return false;
+  } else {
+    return r > 1;
+  }
+};
+
+const videoStreamUserConnected = (deviceId: DeviceId) => {
+  console.log("user connected to video stream", deviceId);
+  if (!numVideoUsersConnected.hasOwnProperty(deviceId)) {
+    numVideoUsersConnected[deviceId] = 0;
+  }
+  numVideoUsersConnected[deviceId]++;
+};
+
+const videoStreamUserDisconnected = (deviceId: DeviceId) => {
+  console.log("user disconnected from video stream", deviceId);
+  lastUserDisconnectedMs[deviceId] = Date.now();
+  if (!numVideoUsersConnected.hasOwnProperty(deviceId)) {
+    return;
+  }
+  numVideoUsersConnected[deviceId]--;
+  if (numVideoUsersConnected[deviceId] < 0) {
+    numVideoUsersConnected[deviceId] = 0;
   }
 };
 
@@ -49,7 +71,7 @@ export const registerVideoDeviceRoutes = async (app: Application) => {
   app.get("/video-device/:deviceId/stream.mjpg", async (req, res) => {
     const deviceId = decode(req.params.deviceId);
     await start(deviceId);
-    videoStreamUserConnected();
+    videoStreamUserConnected(deviceId);
     res.writeHead(200, {
       "Cache-Control":
         "no-store, no-cache, must-revalidate, pre-check=0, post-check=0, max-age=0",
@@ -67,7 +89,7 @@ export const registerVideoDeviceRoutes = async (app: Application) => {
 
     getOrCreateCameraDevice(deviceId).emitter.addListener("frame", writeFrame);
     res.addListener("close", () => {
-      videoStreamUserDisconnected();
+      videoStreamUserDisconnected(deviceId);
       getOrCreateCameraDevice(deviceId).emitter.removeListener(
         "frame",
         writeFrame,

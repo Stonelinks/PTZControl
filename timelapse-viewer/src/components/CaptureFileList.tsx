@@ -7,7 +7,7 @@ import { encode } from "../common/encode";
 import ExpandableSection from "./ExpandableSection";
 
 const mapState = (state: RootState) => ({
-  getCaptureFiles: state.api.getCaptureFiles.value,
+  captureFiles: state.api.getCaptureFiles.value,
 });
 
 const mapDispatch = {
@@ -27,24 +27,24 @@ type Props = PropsFromRedux & OwnProps;
 
 const CaptureFileList = ({
   captureId,
-  getCaptureFiles,
+  captureFiles,
   onGetCaptureFiles,
 }: Props) => {
   React.useEffect(() => {
     onGetCaptureFiles(captureId);
   }, [onGetCaptureFiles]);
 
-  const hasFiles = getCaptureFiles && getCaptureFiles.length;
+  const hasFiles = captureFiles && captureFiles.length;
 
   const t = hasFiles
-    ? `${getCaptureFiles.length} frames captured`
+    ? `${captureFiles.length} frames captured`
     : "No frames captured yet";
 
   const title = <h2>{t}</h2>;
 
   return hasFiles ? (
     <ExpandableSection title={title} startOpened={false}>
-      {getCaptureFiles.map((f: string) => (
+      {captureFiles.map((f: string) => (
         <div
           style={{
             width: "calc(25% - 1px)",

@@ -9,7 +9,7 @@ import { frontendPath } from "../utils/url";
 const { Link } = require("react-location");
 
 const mapState = (state: RootState) => ({
-  getCaptures: state.api.getCaptures.value,
+  captures: state.api.getCaptures.value,
 });
 
 const mapDispatch = {
@@ -24,15 +24,15 @@ interface OwnProps {}
 
 type Props = PropsFromRedux & OwnProps;
 
-const CaptureFileList = ({ getCaptures, onGetCaptures }: Props) => {
+const CaptureFileList = ({ captures, onGetCaptures }: Props) => {
   React.useEffect(() => {
     onGetCaptures();
   }, [onGetCaptures]);
 
   return (
     <div>
-      {getCaptures && getCaptures.length
-        ? getCaptures.map(
+      {captures && captures.length
+        ? captures.map(
             ({
               name,
               numFiles,

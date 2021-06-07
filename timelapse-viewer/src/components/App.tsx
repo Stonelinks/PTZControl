@@ -1,40 +1,18 @@
 import React from "react";
-import { connect, ConnectedProps } from "react-redux";
-import { RootState } from "../redux";
-import { apiCall } from "../redux/api/actions";
+import { decode } from "../common/encode";
 import { apiFetch } from "../utils/api";
-import { reload, frontendPath } from "../utils/url";
-import ConfigEditor from "./ConfigEditor";
-import VideoDeviceControl from "./VideoDeviceControl";
-import VideoDeviceViewer from "./VideoDeviceViewer";
-import CaptureList from "./CaptureList";
-import NavItem from "./NavItem";
+import { frontendPath, reload } from "../utils/url";
 import CaptureFileList from "./CaptureFileList";
-import CreateTimelapseButton from "./CreateTimelapseButton";
-import ResultsFileList from "./ResultsFileList";
+import CaptureList from "./CaptureList";
+import ConfigEditor from "./ConfigEditor";
+import CreateTimelapseButtons from "./CreateTimelapseButtons";
 import CreateTimelapsePage from "./CreateTimelapsePage";
+import NavItem from "./NavItem";
+import ResultsFileList from "./ResultsFileList";
+import VideoDeviceViewer from "./VideoDeviceViewer";
 
 // tslint:disable-next-line:no-var-requires
 const { Match, MatchFirst } = require("react-location");
-
-const mapState = (state: RootState) => ({
-  devices: state.api.devices.value,
-  getDeviceFormats: state.api.getDeviceFormats.value,
-  captureDevice: state.api.getConfig?.value?.captureDevice,
-  controlsDevice: state.api.getConfig?.value?.controlsDevice,
-});
-
-const mapDispatch = {
-  onFetchDevices: () => apiCall("devices"),
-};
-
-const connector = connect(mapState, mapDispatch);
-
-type PropsFromRedux = ConnectedProps<typeof connector>;
-
-interface OwnProps {}
-
-type Props = PropsFromRedux & OwnProps;
 
 enum CONNECTIVITY_STATE {
   unknown = "Loading...",
@@ -42,12 +20,7 @@ enum CONNECTIVITY_STATE {
   disconnected = "Disconnected",
 }
 
-const App = ({
-  devices,
-  onFetchDevices,
-  captureDevice,
-  controlsDevice,
-}: Props) => {
+const App = () => {
   const [connectivityState, setConnectivityState] = React.useState(
     // CONNECTIVITY_STATE.connected,
     CONNECTIVITY_STATE.unknown,
@@ -61,7 +34,6 @@ const App = ({
             const ping = await apiFetch("ping");
             if (ping.pong === "pong") {
               setConnectivityState(CONNECTIVITY_STATE.connected);
-              onFetchDevices();
             } else {
               reload();
             }
@@ -73,11 +45,7 @@ const App = ({
           break;
       }
     })();
-  }, [connectivityState, onFetchDevices]);
-
-  // React.useEffect(() => {
-  //   onFetchDevices();
-  // }, []);
+  }, [connectivityState]);
 
   return (
     <div>
@@ -90,13 +58,37 @@ const App = ({
           </div>
 
           <div>
-            <NavItem to={frontendPath("/")} title="Camera" />
+            <NavItem to={frontendPath("/")} title="Config" />
+            <NavItem to={frontendPath("cameras")} title="Cameras" />
             <NavItem to={frontendPath("captures")} title="Captures" />
           </div>
           <div>
             <MatchFirst>
               <Match path={frontendPath("captures")}>
                 <CaptureList />
+              </Match>
+
+              <Match
+                path={frontendPath(
+                  "capture/:captureId/createTimelapse/:deviceId",
+                )}
+              >
+                {({
+                  captureId,
+                  deviceId,
+                }: {
+                  captureId: string;
+                  deviceId: string;
+                }) => (
+                  <div>
+                    <h2>Please wait...</h2>
+                    <p>You will be automatically redirected</p>
+                    <CreateTimelapsePage
+                      captureId={captureId}
+                      deviceId={decode(deviceId)}
+                    />
+                  </div>
+                )}
               </Match>
 
               <Match path={frontendPath("capture/:captureId/createTimelapse")}>
@@ -112,27 +104,19 @@ const App = ({
               <Match path={frontendPath("capture/:captureId")}>
                 {({ captureId }: { captureId: string }) => (
                   <div>
-                    <CreateTimelapseButton captureId={captureId} />
+                    <CreateTimelapseButtons captureId={captureId} />
                     <ResultsFileList captureId={captureId} />
                     <CaptureFileList captureId={captureId} />
                   </div>
                 )}
               </Match>
 
-              {/* This has to go last */}
+              <Match path={frontendPath("cameras")}>
+                <VideoDeviceViewer />
+              </Match>
+
+              {/* Catchall has to go last */}
               <Match path={frontendPath("/")}>
-                {captureDevice ? (
-                  <VideoDeviceViewer
-                    deviceId={captureDevice}
-                    key={captureDevice}
-                  />
-                ) : null}
-                {controlsDevice ? (
-                  <VideoDeviceControl
-                    deviceId={controlsDevice}
-                    key={controlsDevice}
-                  />
-                ) : null}
                 <ConfigEditor />
               </Match>
             </MatchFirst>
@@ -145,4 +129,4 @@ const App = ({
   );
 };
 
-export default connector(App);
+export default App;

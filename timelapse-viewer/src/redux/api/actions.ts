@@ -42,6 +42,9 @@ export const apiCall = (
   resource: APIResource,
   urlOptions?: object,
 ): AppThunk<void> => async (dispatch, getState) => {
+  console.log(
+    `API call: ${resource} ${urlOptions ? JSON.stringify(urlOptions) : ""}`,
+  );
   dispatch(apiRequestAction({ resource }));
   const state = getState();
   const apiState = state.api;

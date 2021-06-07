@@ -1,9 +1,11 @@
 import React from "react";
 import { connect, ConnectedProps } from "react-redux";
+import { DEVICE_ID_NONE } from "../common/constants";
 import { nothing } from "../common/nothing";
 import { Config } from "../common/types";
 import { RootState } from "../redux";
 import { apiCall } from "../redux/api/actions";
+import { reload } from "../utils/url";
 import ConfigBooleanInput from "./ConfigBooleanInput";
 import ConfigNumberInput from "./ConfigNumberInput";
 import ConfigSelectionInput from "./ConfigSelectionInput";
@@ -16,6 +18,11 @@ const mapState = (state: RootState) => ({
 
 const mapDispatch = {
   onGetConfig: () => apiCall("getConfig"),
+  onSetCaptureDevicesConfigValue: (captureDevices: Config["captureDevices"]) =>
+    apiCall("setConfigValue", {
+      configKey: "captureDevices",
+      configValue: JSON.stringify(captureDevices),
+    }),
 };
 
 const connector = connect(mapState, mapDispatch);
@@ -45,12 +52,6 @@ interface ConfigEditorItem {
 }
 
 const ConfigEditorItems: ConfigEditorItem[] = [
-  { type: INPUT_TYPES.HEADING, displayText: "Device config" },
-  {
-    type: INPUT_TYPES.DEVICE,
-    configKey: "captureDevice",
-    displayText: "Capture device",
-  },
   {
     type: INPUT_TYPES.DEVICE,
     configKey: "controlsDevice",
@@ -58,7 +59,6 @@ const ConfigEditorItems: ConfigEditorItem[] = [
     isPtzControlRelated: true,
   },
   { type: INPUT_TYPES.HEADING, displayText: "Capture config" },
-
   {
     type: INPUT_TYPES.STRING,
     configKey: "captureName",
@@ -127,7 +127,11 @@ const ConfigEditorItems: ConfigEditorItem[] = [
   },
 ];
 
-const ConfigEditor = ({ config, onGetConfig }: Props) => {
+const ConfigEditor = ({
+  config,
+  onGetConfig,
+  onSetCaptureDevicesConfigValue,
+}: Props) => {
   React.useEffect(() => {
     onGetConfig();
   }, [onGetConfig]);
@@ -136,17 +140,60 @@ const ConfigEditor = ({ config, onGetConfig }: Props) => {
     return null;
   }
 
+  const captureDevices = new Array(...config.captureDevices);
+
   return (
     <div>
+      {/* <Debug d={config} /> */}
+      <h3>Device config</h3>
+      <div>
+        {captureDevices.length ? (
+          captureDevices.map((deviceId, index) => {
+            return (
+              <div key={"capture device"}>
+                <DeviceConfigSelector
+                  displayText={`Capture device ${index + 1}`}
+                  configValue={deviceId}
+                  onHandleChange={newDeviceId => {
+                    captureDevices[index] = newDeviceId;
+                    onSetCaptureDevicesConfigValue(captureDevices);
+                  }}
+                />
+                <button
+                  onClick={async () => {
+                    captureDevices.splice(index, 1);
+                    await onSetCaptureDevicesConfigValue(captureDevices);
+                    reload();
+                  }}
+                >{`Remove device ${index + 1}`}</button>
+              </div>
+            );
+          })
+        ) : (
+          <div>No capture devices</div>
+        )}
+        <button
+          onClick={async () => {
+            captureDevices.push(DEVICE_ID_NONE);
+            await onSetCaptureDevicesConfigValue(captureDevices);
+            reload();
+          }}
+        >
+          Add device
+        </button>
+      </div>
       {ConfigEditorItems.map(
-        ({
-          type,
-          displayText,
-          configKey,
-          options,
-          positiveOnly,
-          isPtzControlRelated,
-        }) => {
+        (
+          {
+            type,
+            displayText,
+            configKey,
+            options,
+            positiveOnly,
+            isPtzControlRelated,
+          },
+          index,
+        ) => {
           configKey = configKey || "";
           options = options || [];
           positiveOnly = positiveOnly || false;
@@ -156,10 +203,11 @@ const ConfigEditor = ({ config, onGetConfig }: Props) => {
           }
           switch (type) {
             case INPUT_TYPES.HEADING:
-              return <h3>{displayText}</h3>;
+              return <h3 key={index}>{displayText}</h3>;
             case INPUT_TYPES.DEVICE:
               return (
                 <DeviceConfigSelector
+                  key={index}
                   configKey={configKey}
                   displayText={displayText}
                   configValue={config[configKey]}
@@ -168,6 +216,7 @@ const ConfigEditor = ({ config, onGetConfig }: Props) => {
             case INPUT_TYPES.STRING:
               return (
                 <ConfigStringInput
+                  key={index}
                   configKey={configKey}
                   displayText={displayText}
                   configValue={config[configKey]}
@@ -176,6 +225,7 @@ const ConfigEditor = ({ config, onGetConfig }: Props) => {
             case INPUT_TYPES.BOOLEAN:
               return (
                 <ConfigBooleanInput
+                  key={index}
                   configKey={configKey}
                   displayText={displayText}
                   configValue={config[configKey]}
@@ -184,6 +234,7 @@ const ConfigEditor = ({ config, onGetConfig }: Props) => {
             case INPUT_TYPES.NUMBER:
               return (
                 <ConfigNumberInput
+                  key={index}
                   configKey={configKey}
                   displayText={displayText}
                   configValue={config[configKey]}
@@ -193,6 +244,7 @@ const ConfigEditor = ({ config, onGetConfig }: Props) => {
             case INPUT_TYPES.SELECT:
               return (
                 <ConfigSelectionInput
+                  key={index}
                   configKey={configKey}
                   displayText={displayText}
                   configValue={config[configKey]}
