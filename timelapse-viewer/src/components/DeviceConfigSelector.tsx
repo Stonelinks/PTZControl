@@ -19,9 +19,10 @@ const connector = connect(mapState, mapDispatch);
 type PropsFromRedux = ConnectedProps<typeof connector>;
 
 interface OwnProps {
-  configKey: keyof Config;
+  configKey?: keyof Config;
   configValue: any; // TODO
   displayText: string;
+  onHandleChange?: (newDeviceId: string) => void;
 }
 
 type Props = PropsFromRedux & OwnProps;
@@ -33,6 +34,7 @@ const DeviceConfigSelector = ({
   configValue,
   displayText,
   onSetConfigValue,
+  onHandleChange,
 }: Props) => {
   const [value, setValue] = React.useState(configValue);
 
@@ -45,15 +47,20 @@ const DeviceConfigSelector = ({
   }
 
   const handleChange = async (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const newConfigValue = e.target.value as any;
-    setValue(newConfigValue);
-    await onSetConfigValue(configKey, newConfigValue);
+    const newDeviceId = e.target.value as any;
+    if (onHandleChange) {
+      setValue(newDeviceId);
+      onHandleChange(newDeviceId);
+    } else if (configKey) {
+      setValue(newDeviceId);
+      await onSetConfigValue(configKey, newDeviceId);
+    }
   };
 
   return (
     <div>
       <label>
-        {displayText}
+        {`${displayText}: ${value} `}
         <select value={value} onChange={handleChange}>
           {devices.map(d => (
             <option key={d} value={d}>

@@ -1,25 +1,32 @@
+import * as ffmpegPath from "ffmpeg-static";
+import * as ffmpeg from "fluent-ffmpeg";
 import * as shell from "shelljs";
-import { CAPTURE_FOLDER } from "../common/constants";
+import { CAPTURE_FOLDER, DEVICE_ID_NONE } from "../common/constants";
 import {
+  MILLISECONDS_IN_MINUTE,
   MILLISECONDS_IN_SECOND,
   timeout,
-  MILLISECONDS_IN_MINUTE,
 } from "../common/time";
-import { getConfig } from "./config";
-import { getChronologicalFileList, writeFileAsync } from "./files";
+import { slugifyDeviceId } from "../common/types";
 import {
-  stop,
+  getLastUserDisconnectedMs,
+  isStreamingVideo,
+} from "../routes/videoDevices";
+import { deleteFile } from "../utils/files";
+import { cachedDownsize } from "../utils/images";
+import { getConfig } from "./config";
+import { DEFAULT_INTERVAL_MS } from "./cron";
+import { getChronologicalFileList, writeFileAsync } from "./files";
+import { fileIsGifOrMovie, fileIsImage } from "./images";
+import {
   getOrCreateCameraDevice,
   moveAxisSpeedStart,
   moveAxisSpeedStop,
+  stop,
   takeSnapshot,
 } from "./videoDevices";
-import { DEFAULT_INTERVAL_MS } from "./cron";
-import {
-  isStreamingVideo,
-  getLastUserDisconnectedMs,
-} from "../routes/videoDevices";
-import { fileIsGifOrMovie, fileIsImage } from "./images";
+
+ffmpeg.setFfmpegPath(ffmpegPath);
 
 export const getCaptureDir = async () => {
   const captureDir = `${CAPTURE_FOLDER}`;
@@ -54,14 +61,23 @@ export const CaptureCronJob = {
   fn: async nowMs => {
     const c = await getConfig();
     if (c.captureEnable) {
-      console.log(`${nowMs}: taking snapshot`);
-      const snapshot = await takeSnapshot(c.captureDevice);
-      const activeCaptureDir = await getActiveCaptureDir();
+      console.log(`${nowMs}: taking snapshots for ${c.captureDevices}`);
 
-      await writeFileAsync(
-        `${activeCaptureDir}/${c.captureName}-${nowMs}.jpg`,
-        snapshot,
-      );
+      // tslint:disable-next-line:prefer-for-of
+      for (let index = 0; index < c.captureDevices.length; index++) {
+        const deviceId = c.captureDevices[index];
+        if (deviceId !== DEVICE_ID_NONE) {
+          const snapshot = await takeSnapshot(deviceId);
+          const activeCaptureDirForDeviceId = await getActiveCaptureDir();
+
+          await writeFileAsync(
+            `${activeCaptureDirForDeviceId}/${slugifyDeviceId(deviceId)}-${
+              c.captureName
+            }-${nowMs}.jpg`,
+            snapshot,
+          );
+        }
+      }
     }
   },
 };
@@ -71,14 +87,18 @@ export const CameraStreamTimeoutCronJob = {
   intervalMs: 2 * MILLISECONDS_IN_MINUTE,
   fn: async () => {
     const c = await getConfig();
-    if (
-      !(
-        c.captureEnable ||
-        isStreamingVideo() ||
-        getLastUserDisconnectedMs() < 5 * MILLISECONDS_IN_MINUTE
-      )
-    ) {
-      stop(c.captureDevice);
+    // tslint:disable-next-line:prefer-for-of
+    for (let index = 0; index < c.captureDevices.length; index++) {
+      const deviceId = c.captureDevices[index];
+      if (
+        !(
+          c.captureEnable ||
+          isStreamingVideo(deviceId) ||
+          getLastUserDisconnectedMs(deviceId) < 5 * MILLISECONDS_IN_MINUTE
+        )
+      ) {
+        stop(deviceId);
+      }
     }
   },
 };
@@ -115,4 +135,70 @@ export const TiltCronJob = {
       moveAxisSpeedStop(cam, "tilt");
     }
   },
+};
+
+interface MakeTimelapseVideoOpts {
+  nowMs: number;
+  files: string[];
+  outPath: string;
+  delayMs: string;
+  log: (s: string) => void;
+  end: () => void;
+}
+
+export const makeTimelapseVideo = async ({
+  nowMs,
+  files,
+  log,
+  end,
+  outPath,
+  delayMs,
+}: MakeTimelapseVideoOpts) => {
+  const delaySeconds = `${parseInt(delayMs, 10) / MILLISECONDS_IN_SECOND}`;
+  const fileListPath = `/tmp/timelapse-out-${nowMs}.txt`;
+  let ffmpegInstructions = "";
+
+  log(`about to resize ${files.length} images...`);
+
+  // tslint:disable-next-line:prefer-for-of
+  for (let i = 0; i < files.length; i++) {
+    const file = files[i];
+    const downsizePath = await cachedDownsize(file, 0.5);
+    log(`(${i + 1}/${files.length}) downsized ${file}`);
+    ffmpegInstructions += `file '${downsizePath}'\n`;
+    ffmpegInstructions += `duration ${delaySeconds}\n`;
+  }
+
+  // due to a quirk, the last file needs to be specified twice (see concat demuxer here https://trac.ffmpeg.org/wiki/Slideshow)
+  ffmpegInstructions += `file '${files[files.length - 1]}'\n`;
+
+  await writeFileAsync(fileListPath, ffmpegInstructions);
+  log(`made a list of ${files.length} images to ${fileListPath}`);
+
+  ffmpeg()
+    .addInput(fileListPath)
+    .inputOptions(["-f", "concat", "-safe", "0"])
+    .videoCodec("libx264")
+    .noAudio()
+    .on("start", command => {
+      log("ffmpeg process started: " + command);
+    })
+    .on("progress", progress => {
+      log("processing: " + parseInt(progress.percent, 10) + "% done");
+    })
+    .on("error", (err, stdout, stderr) => {
+      log("Error: " + err);
+      log("ffmpeg stderr: " + stderr);
+
+      setTimeout(() => {
+        end();
+      }, MILLISECONDS_IN_MINUTE / 2);
+    })
+    .on("end", async () => {
+      log("video created in: " + outPath);
+      log("done! you should be automatically redirected");
+      await deleteFile(fileListPath);
+      end();
+    })
+    .save(outPath);
 };

@@ -1,6 +1,7 @@
 import * as fs from "fs";
 import { timeout, MILLISECONDS_IN_SECOND } from "../common/time";
 import { EventEmitter } from "events";
+import { DeviceId } from "../common/types";
 
 // tslint:disable-next-line:no-var-requires
 const v4l2camera = require("v4l2camera");
@@ -99,7 +100,7 @@ interface CameraDeviceState {
 
 const cameraDevices: Record<string, CameraDeviceState> = {};
 export const getOrCreateCameraDevice = (
-  deviceId: string,
+  deviceId: DeviceId,
 ): CameraDeviceState => {
   if (cameraDevices[deviceId]) {
     return cameraDevices[deviceId];
@@ -117,11 +118,11 @@ export const getOrCreateCameraDevice = (
   return r;
 };
 
-export const setCameraDeviceZoom = (deviceId: string, zoom: number) => {
+export const setCameraDeviceZoom = (deviceId: DeviceId, zoom: number) => {
   cameraDevices[deviceId].zoom = zoom;
 };
 
-export const start = async (deviceId: string): Promise<void> => {
+export const start = async (deviceId: DeviceId): Promise<void> => {
   const { cam, isOn, initState } = getOrCreateCameraDevice(deviceId);
   if (isOn) {
     return Promise.resolve();
@@ -136,12 +137,12 @@ export const start = async (deviceId: string): Promise<void> => {
         const f = autoSelectFormat(cam);
         cam.configSet(f);
 
-        // set zoom
-        const zoomAbsControl = getControl(cam, `zoom absolute`);
-        if (zoomAbsControl) {
-          cam.controlSet(zoomAbsControl.id, getZoomInfo(cam).default);
-          await timeout(MILLISECONDS_IN_SECOND);
-        }
+        // // set zoom
+        // const zoomAbsControl = getControl(cam, `zoom absolute`);
+        // if (zoomAbsControl) {
+        //   cam.controlSet(zoomAbsControl.id, getZoomInfo(cam).default);
+        //   await timeout(MILLISECONDS_IN_SECOND);
+        // }
 
         // init pan and tilt
         // await centerAxis(cam, "tilt", true);
@@ -194,14 +195,14 @@ export const start = async (deviceId: string): Promise<void> => {
   });
 };
 
-export const stop = (deviceId: string) => {
+export const stop = (deviceId: DeviceId) => {
   const { isOn } = getOrCreateCameraDevice(deviceId);
   if (isOn) {
     cameraDevices[deviceId].isOn = false;
   }
 };
 
-export const takeSnapshot = async (deviceId: string): Promise<Buffer> => {
+export const takeSnapshot = async (deviceId: DeviceId): Promise<Buffer> => {
   await start(deviceId);
 
   while (!cameraDevices[deviceId].lastFrame) {
@@ -290,7 +291,7 @@ export const centerAxis = async (cam: Cam, axis: string, backwards = false) => {
   await timeout(2 * MILLISECONDS_IN_SECOND);
 };
 
-export const assertCameraIsOn = async (deviceId: string) => {
+export const assertCameraIsOn = async (deviceId: DeviceId) => {
   while (!(cameraDevices[deviceId] && cameraDevices[deviceId].isOn)) {
     console.log("assertCameraIsOn", deviceId);
     await timeout(500);

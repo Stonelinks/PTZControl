@@ -16,3 +16,5 @@ export const SERVER_PORT =
 export const CONFIG_FILE = prefixPath("config.json");
 
 export const ENABLE_PTZ = false;
+
+export const DEVICE_ID_NONE = "Null device ID";

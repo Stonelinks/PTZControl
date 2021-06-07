@@ -1,5 +1,4 @@
 import * as fs from "fs";
-import * as sizeOf from "image-size";
 import * as path from "path";
 import * as sharp from "sharp";
 import * as shell from "shelljs";
@@ -11,13 +10,9 @@ import {
 import { encode } from "../common/encode";
 import { makeCachedFn } from "./cache";
 
-sizeOf.setConcurrency(123456);
-
-export const getSize = (
-  fullPath: string,
-): { width: number; height: number } => {
-  const { width, height } = (sizeOf as any)(fullPath);
-  return { width: parseInt(width, 10), height: parseInt(height, 10) };
+export const getSize = async (fullPath: string) => {
+  const imageInfo = await sharp(fullPath).metadata();
+  return { width: imageInfo.width, height: imageInfo.height };
 };
 
 export const getThumbnail = async (imageFilePath: string) => {
@@ -51,7 +46,7 @@ export const downSize = async (
   outputImageFilePath: string,
   percentDownsize: number = 0.5, // between 0 and 1
 ) => {
-  const { width, height } = getSize(inputImageFilePath);
+  const { width, height } = await getSize(inputImageFilePath);
 
   await sharp(inputImageFilePath)
     .resize(

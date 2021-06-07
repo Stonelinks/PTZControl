@@ -15,23 +15,28 @@ type PropsFromRedux = ConnectedProps<typeof connector>;
 
 interface OwnProps {
   captureId: string;
+  deviceId?: string;
 }
 
 type Props = PropsFromRedux & OwnProps;
 
-const CreateTimelapsePage = ({ captureId }: Props) => {
-  const [response, setResponse] = React.useState("");
+const CreateTimelapsePage = ({ captureId, deviceId }: Props) => {
+  const [response, setResponse] = React.useState(
+    `Logging timelapse for ${captureId}${deviceId ? " for " + deviceId : ""}`,
+  );
 
   React.useEffect(() => {
     const delayMs = window.prompt("Enter frame delay (ms)", "1000");
 
-    const url = fillInUrlTemplate(
-      `${BASE_URL}/timelapse/capture/:captureId/create/:delayMs`,
-      {
-        captureId,
-        delayMs,
-      },
-    );
+    let urlTemplate = `${BASE_URL}/timelapse/capture/:captureId/create/:delayMs`;
+    if (deviceId) {
+      urlTemplate += `/device/:deviceId`;
+    }
+    const url = fillInUrlTemplate(urlTemplate, {
+      captureId,
+      delayMs,
+      deviceId,
+    });
 
     const xhr = new XMLHttpRequest();
     xhr.responseType = "text";

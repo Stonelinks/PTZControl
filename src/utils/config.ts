@@ -15,7 +15,7 @@ const makeDefaultConfig = async (): Promise<Config> => {
   const devices = await listVideoDevices();
   const firstDevice = devices.length ? devices[0] : "unknown";
   return {
-    captureDevice: firstDevice,
+    captureDevices: [firstDevice],
     controlsDevice: firstDevice,
 
     captureName: "capture",

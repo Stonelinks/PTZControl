@@ -14,6 +14,7 @@ import {
   FaPlus,
   FaMinus,
 } from "react-icons/fa";
+import { DeviceId } from "../common/types";
 
 const mapState = (state: RootState) => ({
   getDeviceFormats: state.api.getDeviceFormats.value,
@@ -21,23 +22,23 @@ const mapState = (state: RootState) => ({
 });
 
 const mapDispatch = {
-  onGetDeviceFormats: (deviceId: string) =>
+  onGetDeviceFormats: (deviceId: DeviceId) =>
     apiCall("getDeviceFormats", { deviceId }),
-  onGetDeviceControls: (deviceId: string) =>
+  onGetDeviceControls: (deviceId: DeviceId) =>
     apiCall("getDeviceControls", { deviceId }),
   onSetDevicePositionControl: (
-    deviceId: string,
+    deviceId: DeviceId,
     axis: "pan" | "tilt",
     direction: "up" | "down" | "left" | "right",
   ) => apiCall("setDevicePositionControl", { deviceId, axis, direction }),
-  onSetDeviceZoomControl: (deviceId: string, direction: "in" | "out") =>
+  onSetDeviceZoomControl: (deviceId: DeviceId, direction: "in" | "out") =>
     apiCall("setDeviceZoomControl", { deviceId, direction }),
   onSetDeviceSpeedControlStart: (
-    deviceId: string,
+    deviceId: DeviceId,
     axis: "pan" | "tilt",
     direction: "up" | "down" | "left" | "right",
   ) => apiCall("setDeviceSpeedControlStart", { deviceId, axis, direction }),
-  onSetDeviceSpeedControlStop: (deviceId: string, axis: "pan" | "tilt") =>
+  onSetDeviceSpeedControlStop: (deviceId: DeviceId, axis: "pan" | "tilt") =>
     apiCall("setDeviceSpeedControlStop", { deviceId, axis }),
 };
 
@@ -46,7 +47,7 @@ const connector = connect(mapState, mapDispatch);
 type PropsFromRedux = ConnectedProps<typeof connector>;
 
 interface OwnProps {
-  deviceId: string;
+  deviceId: DeviceId;
 }
 
 type Props = PropsFromRedux & OwnProps;
