@@ -62,9 +62,7 @@ const VideoDeviceViewer = ({
             );
           })
         : null}
-      {controlsDevice ? (
-        <VideoDeviceControl deviceId={controlsDevice} key={controlsDevice} />
-      ) : null}
+      {controlsDevice ? <VideoDeviceControl deviceId={controlsDevice} /> : null}
     </div>
   );
 };

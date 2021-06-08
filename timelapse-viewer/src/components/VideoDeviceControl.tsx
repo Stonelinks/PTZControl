@@ -266,4 +266,14 @@ class VideoDeviceControl extends React.Component<Props, State> {
   }
 }
 
-export default RenderIfPtzEnabled(connector(VideoDeviceControl));
+const WrappedVideoDeviceControl = connector(VideoDeviceControl);
+
+const VideoDeviceWrapperControl = (origProps: OwnProps) => {
+  return (
+    <RenderIfPtzEnabled
+      WrappedComponent={() => <WrappedVideoDeviceControl {...origProps} />}
+    />
+  );
+};
+
+export default VideoDeviceWrapperControl;

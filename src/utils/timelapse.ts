@@ -103,39 +103,39 @@ export const CameraStreamTimeoutCronJob = {
   },
 };
 
-export const PanCronJob = {
-  name: "pan",
-  intervalMs: async () => {
-    const c = await getConfig();
-    return c.panStepEnable ? c.panStepRateMs : DEFAULT_INTERVAL_MS;
-  },
-  fn: async () => {
-    const c = await getConfig();
-    if (c.panStepEnable) {
-      const { cam } = getOrCreateCameraDevice(c.controlsDevice);
-      moveAxisSpeedStart(cam, "pan", c.panStepDirection);
-      await timeout(0.2 * MILLISECONDS_IN_SECOND);
-      moveAxisSpeedStop(cam, "pan");
-    }
-  },
-};
+// export const PanCronJob = {
+//   name: "pan",
+//   intervalMs: async () => {
+//     const c = await getConfig();
+//     return c.panStepEnable ? c.panStepRateMs : DEFAULT_INTERVAL_MS;
+//   },
+//   fn: async () => {
+//     const c = await getConfig();
+//     if (c.panStepEnable) {
+//       const { cam } = getOrCreateCameraDevice(c.controlsDevice);
+//       moveAxisSpeedStart(cam, "pan", c.panStepDirection);
+//       await timeout(0.2 * MILLISECONDS_IN_SECOND);
+//       moveAxisSpeedStop(cam, "pan");
+//     }
+//   },
+// };
 
-export const TiltCronJob = {
-  name: "tilt",
-  intervalMs: async () => {
-    const c = await getConfig();
-    return c.tiltStepEnable ? c.tiltStepRateMs : DEFAULT_INTERVAL_MS;
-  },
-  fn: async () => {
-    const c = await getConfig();
-    if (c.tiltStepEnable) {
-      const { cam } = getOrCreateCameraDevice(c.controlsDevice);
-      moveAxisSpeedStart(cam, "tilt", c.tiltStepDirection);
-      await timeout(0.2 * MILLISECONDS_IN_SECOND);
-      moveAxisSpeedStop(cam, "tilt");
-    }
-  },
-};
+// export const TiltCronJob = {
+//   name: "tilt",
+//   intervalMs: async () => {
+//     const c = await getConfig();
+//     return c.tiltStepEnable ? c.tiltStepRateMs : DEFAULT_INTERVAL_MS;
+//   },
+//   fn: async () => {
+//     const c = await getConfig();
+//     if (c.tiltStepEnable) {
+//       const { cam } = getOrCreateCameraDevice(c.controlsDevice);
+//       moveAxisSpeedStart(cam, "tilt", c.tiltStepDirection);
+//       await timeout(0.2 * MILLISECONDS_IN_SECOND);
+//       moveAxisSpeedStop(cam, "tilt");
+//     }
+//   },
+// };
 
 interface MakeTimelapseVideoOpts {
   nowMs: number;

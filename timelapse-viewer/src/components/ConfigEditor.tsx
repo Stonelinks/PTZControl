@@ -1,6 +1,6 @@
 import React from "react";
 import { connect, ConnectedProps } from "react-redux";
-import { DEVICE_ID_NONE } from "../common/constants";
+import { DEVICE_ID_NONE, ENABLE_PTZ } from "../common/constants";
 import { nothing } from "../common/nothing";
 import { Config } from "../common/types";
 import { RootState } from "../redux";
@@ -48,16 +48,9 @@ interface ConfigEditorItem {
   configKey?: keyof Config;
   options?: string[];
   positiveOnly?: boolean;
-  isPtzControlRelated?: boolean;
 }
 
 const ConfigEditorItems: ConfigEditorItem[] = [
-  {
-    type: INPUT_TYPES.DEVICE,
-    configKey: "controlsDevice",
-    displayText: "Controls device",
-    isPtzControlRelated: true,
-  },
   { type: INPUT_TYPES.HEADING, displayText: "Capture config" },
   {
     type: INPUT_TYPES.STRING,
@@ -75,56 +68,67 @@ const ConfigEditorItems: ConfigEditorItem[] = [
     displayText: "Capture Rate (ms)",
     positiveOnly: true,
   },
-  {
-    type: INPUT_TYPES.HEADING,
-    displayText: "Pan config",
-    isPtzControlRelated: true,
-  },
+  { type: INPUT_TYPES.HEADING, displayText: "Controls config" },
   {
     type: INPUT_TYPES.BOOLEAN,
-    configKey: "panStepEnable",
-    displayText: "Pan Enable",
-    isPtzControlRelated: true,
+    configKey: "controlsEnable",
+    displayText: "Controls Enable",
   },
   {
-    type: INPUT_TYPES.NUMBER,
-    configKey: "panStepRateMs",
-    displayText: "Pan Rate (ms)",
-    positiveOnly: true,
-    isPtzControlRelated: true,
+    type: INPUT_TYPES.DEVICE,
+    configKey: "controlsDevice",
+    displayText: "Controls device",
   },
-  {
-    type: INPUT_TYPES.SELECT,
-    configKey: "panStepDirection",
-    displayText: "Pan step direction",
-    options: ["left", "right"],
-    isPtzControlRelated: true,
-  },
-  {
-    type: INPUT_TYPES.HEADING,
-    displayText: "Tilt config",
-    isPtzControlRelated: true,
-  },
-  {
-    type: INPUT_TYPES.BOOLEAN,
-    configKey: "tiltStepEnable",
-    displayText: "Tilt Enable",
-    isPtzControlRelated: true,
-  },
-  {
-    type: INPUT_TYPES.NUMBER,
-    configKey: "tiltStepRateMs",
-    displayText: "Tilt Rate (ms)",
-    positiveOnly: true,
-    isPtzControlRelated: true,
-  },
-  {
-    type: INPUT_TYPES.SELECT,
-    configKey: "tiltStepDirection",
-    displayText: "Tilt step direction",
-    options: ["up", "down"],
-    isPtzControlRelated: true,
-  },
+  // {
+  //   type: INPUT_TYPES.HEADING,
+  //   displayText: "Pan config",
+  //   isPtzControlRelated: true,
+  // },
+  // {
+  //   type: INPUT_TYPES.BOOLEAN,
+  //   configKey: "panStepEnable",
+  //   displayText: "Pan Enable",
+  //   isPtzControlRelated: true,
+  // },
+  // {
+  //   type: INPUT_TYPES.NUMBER,
+  //   configKey: "panStepRateMs",
+  //   displayText: "Pan Rate (ms)",
+  //   positiveOnly: true,
+  //   isPtzControlRelated: true,
+  // },
+  // {
+  //   type: INPUT_TYPES.SELECT,
+  //   configKey: "panStepDirection",
+  //   displayText: "Pan step direction",
+  //   options: ["left", "right"],
+  //   isPtzControlRelated: true,
+  // },
+  // {
+  //   type: INPUT_TYPES.HEADING,
+  //   displayText: "Tilt config",
+  //   isPtzControlRelated: true,
+  // },
+  // {
+  //   type: INPUT_TYPES.BOOLEAN,
+  //   configKey: "tiltStepEnable",
+  //   displayText: "Tilt Enable",
+  //   isPtzControlRelated: true,
+  // },
+  // {
+  //   type: INPUT_TYPES.NUMBER,
+  //   configKey: "tiltStepRateMs",
+  //   displayText: "Tilt Rate (ms)",
+  //   positiveOnly: true,
+  //   isPtzControlRelated: true,
+  // },
+  // {
+  //   type: INPUT_TYPES.SELECT,
+  //   configKey: "tiltStepDirection",
+  //   displayText: "Tilt step direction",
+  //   options: ["up", "down"],
+  //   isPtzControlRelated: true,
+  // },
 ];
 
 const ConfigEditor = ({
@@ -160,12 +164,13 @@ const ConfigEditor = ({
                   }}
                 />
                 <button
+                  style={{ marginLeft: "10px" }}
                   onClick={async () => {
                     captureDevices.splice(index, 1);
                     await onSetCaptureDevicesConfigValue(captureDevices);
                     reload();
                   }}
-                >{`Remove device ${index + 1}`}</button>
+                >{`X`}</button>
               </div>
             );
           })
@@ -183,24 +188,10 @@ const ConfigEditor = ({
         </button>
       </div>
       {ConfigEditorItems.map(
-        (
-          {
-            type,
-            displayText,
-            configKey,
-            options,
-            positiveOnly,
-            isPtzControlRelated,
-          },
-          index,
-        ) => {
+        ({ type, displayText, configKey, options, positiveOnly }, index) => {
           configKey = configKey || "";
           options = options || [];
           positiveOnly = positiveOnly || false;
-          isPtzControlRelated = isPtzControlRelated || false;
-          if (isPtzControlRelated) {
-            return null;
-          }
           switch (type) {
             case INPUT_TYPES.HEADING:
               return <h3 key={index}>{displayText}</h3>;

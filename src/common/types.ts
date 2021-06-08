@@ -17,13 +17,15 @@ export interface Config extends JsonObject {
   captureName: string;
   captureRateMs: number;
 
-  panStepEnable: boolean;
-  panStepRateMs: number;
-  panStepDirection: "left" | "right";
+  controlsEnable: boolean;
 
-  tiltStepEnable: boolean;
-  tiltStepRateMs: number;
-  tiltStepDirection: "up" | "down";
+  // panStepEnable: boolean;
+  // panStepRateMs: number;
+  // panStepDirection: "left" | "right";
+
+  // tiltStepEnable: boolean;
+  // tiltStepRateMs: number;
+  // tiltStepDirection: "up" | "down";
 
   // zoomStepEnable: boolean;
   // zoomStepRateMs: number;

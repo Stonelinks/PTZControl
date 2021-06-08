@@ -1,11 +1,6 @@
 import { ENABLE_PTZ } from "../common/constants";
 import { MILLISECONDS_IN_SECOND, timeout } from "../common/time";
-import {
-  CaptureCronJob,
-  TiltCronJob,
-  PanCronJob,
-  CameraStreamTimeoutCronJob,
-} from "./timelapse";
+import { CaptureCronJob, CameraStreamTimeoutCronJob } from "./timelapse";
 
 export const DEFAULT_INTERVAL_MS = 30 * MILLISECONDS_IN_SECOND;
 
@@ -64,9 +59,9 @@ class Cron {
 
 const crons = [CaptureCronJob, CameraStreamTimeoutCronJob];
 
-if (ENABLE_PTZ) {
-  crons.push(PanCronJob);
-  crons.push(TiltCronJob);
-}
+// if (ENABLE_PTZ) {
+//   crons.push(PanCronJob);
+//   crons.push(TiltCronJob);
+// }
 
 export const cron = new Cron(crons);

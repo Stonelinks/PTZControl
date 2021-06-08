@@ -58,7 +58,7 @@ const DeviceConfigSelector = ({
   };
 
   return (
-    <div>
+    <div style={{ display: "inline-block" }}>
       <label>
         {`${displayText}: ${value} `}
         <select value={value} onChange={handleChange}>

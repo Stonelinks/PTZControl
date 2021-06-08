@@ -22,13 +22,15 @@ const makeDefaultConfig = async (): Promise<Config> => {
     captureEnable: false,
     captureRateMs: MILLISECONDS_IN_MINUTE,
 
-    panStepEnable: false,
-    panStepRateMs: 2000,
-    panStepDirection: "left",
+    controlsEnable: false,
 
-    tiltStepEnable: false,
-    tiltStepRateMs: 2000,
-    tiltStepDirection: "up",
+    // panStepEnable: false,
+    // panStepRateMs: 2000,
+    // panStepDirection: "left",
+
+    // tiltStepEnable: false,
+    // tiltStepRateMs: 2000,
+    // tiltStepDirection: "up",
   };
 };
 
