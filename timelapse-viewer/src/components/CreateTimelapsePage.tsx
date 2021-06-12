@@ -22,7 +22,9 @@ type Props = PropsFromRedux & OwnProps;
 
 const CreateTimelapsePage = ({ captureId, deviceId }: Props) => {
   const [response, setResponse] = React.useState(
-    `Logging timelapse for ${captureId}${deviceId ? " for " + deviceId : ""}`,
+    `Timelapse creation log for ${captureId}${
+      deviceId ? " captured with " + deviceId : ""
+    }`,
   );
 
   React.useEffect(() => {

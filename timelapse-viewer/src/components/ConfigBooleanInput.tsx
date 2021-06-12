@@ -4,6 +4,9 @@ import { Config } from "../common/types";
 import { RootState } from "../redux";
 import { apiCall } from "../redux/api/actions";
 
+import "react-toggle/style.css";
+import Toggle from "react-toggle";
+
 const mapState = (state: RootState) => ({});
 
 const mapDispatch = {
@@ -30,8 +33,8 @@ const ConfigBooleanInput = ({
   onSetConfigValue,
 }: Props) => {
   const [value, setValue] = React.useState(configValue);
-  const handleChange = async (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const newConfigValue = e.target.value;
+  const handleChange = async (e: any) => {
+    const newConfigValue = Boolean(e.target.checked) ? "True" : "False";
     setValue(newConfigValue);
     await onSetConfigValue(configKey, newConfigValue);
   };
@@ -39,15 +42,8 @@ const ConfigBooleanInput = ({
   return (
     <div>
       <label>
-        {displayText}
-        <select value={value ? "True" : "False"} onChange={handleChange}>
-          <option key="True" value="True">
-            True
-          </option>
-          <option key="False" value="False">
-            False
-          </option>
-        </select>
+        <span>{displayText}</span>
+        <Toggle value={value ? "yes" : "no"} onChange={handleChange} />
       </label>
     </div>
   );
