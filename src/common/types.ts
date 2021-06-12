@@ -11,13 +11,17 @@ export const deviceIdFromSlug = (deviceIdSlug: string) =>
 
 export interface Config extends JsonObject {
   captureDevices: DeviceId[];
-  controlsDevice: DeviceId;
 
   captureEnable: boolean;
   captureName: string;
   captureRateMs: number;
 
+  captureWindowEnable: boolean;
+  captureWindowStart: string;
+  captureWindowEnd: string;
+
   controlsEnable: boolean;
+  controlsDevice: DeviceId;
 
   // panStepEnable: boolean;
   // panStepRateMs: number;

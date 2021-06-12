@@ -13,19 +13,25 @@ export const deviceIdFromSlug = (deviceIdSlug: string) =>
 
 export interface Config extends JsonObject {
   captureDevices: DeviceId[];
-  controlsDevice: DeviceId;
 
   captureEnable: boolean;
   captureName: string;
   captureRateMs: number;
 
-  panStepEnable: boolean;
-  panStepRateMs: number;
-  panStepDirection: "left" | "right";
+  captureWindowEnable: boolean;
+  captureWindowStart: string;
+  captureWindowEnd: string;
 
-  tiltStepEnable: boolean;
-  tiltStepRateMs: number;
-  tiltStepDirection: "up" | "down";
+  controlsEnable: boolean;
+  controlsDevice: DeviceId;
+
+  // panStepEnable: boolean;
+  // panStepRateMs: number;
+  // panStepDirection: "left" | "right";
+
+  // tiltStepEnable: boolean;
+  // tiltStepRateMs: number;
+  // tiltStepDirection: "up" | "down";
 
   // zoomStepEnable: boolean;
   // zoomStepRateMs: number;

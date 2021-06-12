@@ -16,13 +16,17 @@ const makeDefaultConfig = async (): Promise<Config> => {
   const firstDevice = devices.length ? devices[0] : "unknown";
   return {
     captureDevices: [firstDevice],
-    controlsDevice: firstDevice,
 
     captureName: "capture",
     captureEnable: false,
     captureRateMs: MILLISECONDS_IN_MINUTE,
 
+    captureWindowEnable: false,
+    captureWindowStart: "10:00",
+    captureWindowEnd: "11:00",
+
     controlsEnable: false,
+    controlsDevice: firstDevice,
 
     // panStepEnable: false,
     // panStepRateMs: 2000,

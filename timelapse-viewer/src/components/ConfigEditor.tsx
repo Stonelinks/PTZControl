@@ -10,6 +10,7 @@ import ConfigBooleanInput from "./ConfigBooleanInput";
 import ConfigNumberInput from "./ConfigNumberInput";
 import ConfigSelectionInput from "./ConfigSelectionInput";
 import ConfigStringInput from "./ConfigStringInput";
+import ConfigTimeInput from "./ConfigTimeInput";
 import DeviceConfigSelector from "./DeviceConfigSelector";
 
 const mapState = (state: RootState) => ({
@@ -40,6 +41,7 @@ enum INPUT_TYPES {
   BOOLEAN,
   NUMBER,
   SELECT,
+  TIME,
 }
 
 interface ConfigEditorItem {
@@ -67,6 +69,22 @@ const ConfigEditorItems: ConfigEditorItem[] = [
     configKey: "captureRateMs",
     displayText: "Capture Rate (ms)",
     positiveOnly: true,
+  },
+  { type: INPUT_TYPES.HEADING, displayText: "Window settings" },
+  {
+    type: INPUT_TYPES.BOOLEAN,
+    configKey: "captureWindowEnable",
+    displayText: "Window enable",
+  },
+  {
+    type: INPUT_TYPES.TIME,
+    configKey: "captureWindowStart",
+    displayText: "Window start",
+  },
+  {
+    type: INPUT_TYPES.TIME,
+    configKey: "captureWindowEnd",
+    displayText: "Window end",
   },
   { type: INPUT_TYPES.HEADING, displayText: "Controls config" },
   {
@@ -207,6 +225,15 @@ const ConfigEditor = ({
             case INPUT_TYPES.STRING:
               return (
                 <ConfigStringInput
+                  key={index}
+                  configKey={configKey}
+                  displayText={displayText}
+                  configValue={config[configKey]}
+                />
+              );
+            case INPUT_TYPES.TIME:
+              return (
+                <ConfigTimeInput
                   key={index}
                   configKey={configKey}
                   displayText={displayText}
