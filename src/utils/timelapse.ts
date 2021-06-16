@@ -154,7 +154,7 @@ export const makeTimelapseVideo = async ({
 
   const downSizeAmount = files.length > 5000 ? 0.25 : 0.5;
   log(
-    `about to resize ${files.length} images by ${downSizeAmount *
+    `about to resize ${files.length} images by ${(1 - downSizeAmount) *
       100} percent...`,
   );
   // tslint:disable-next-line:prefer-for-of

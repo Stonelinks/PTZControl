@@ -44,14 +44,14 @@ export const getThumbnail = async (imageFilePath: string) => {
 export const downSize = async (
   inputImageFilePath: string,
   outputImageFilePath: string,
-  percentDownsize: number = 0.5, // between 0 and 1
+  amountDownsize: number = 0.5, // between 0 (smallest) and 1 (original size)
 ) => {
   const { width, height } = await getSize(inputImageFilePath);
 
   await sharp(inputImageFilePath)
     .resize(
-      parseInt((width * percentDownsize).toString(), 10),
-      parseInt((height * percentDownsize).toString(), 10),
+      parseInt((width * amountDownsize).toString(), 10),
+      parseInt((height * amountDownsize).toString(), 10),
     )
     .toFile(outputImageFilePath);
 
@@ -60,17 +60,17 @@ export const downSize = async (
 
 export const cachedDownsize = makeCachedFn(
   "cachedDownsize",
-  async (inputFile, percentDownsize: number = 0.5) => {
+  async (inputFile, downSizeAmount: number = 0.5) => {
     const downsizeCacheBaseDir = `${CACHE_FOLDER}/downsizes`;
     if (!fs.existsSync(downsizeCacheBaseDir)) {
       shell.mkdir("-p", downsizeCacheBaseDir);
     }
 
     const outputFile = `${downsizeCacheBaseDir}/${encode(inputFile)}-${encode(
-      percentDownsize.toString(),
+      downSizeAmount.toString(),
     )}.png`;
 
-    await downSize(inputFile, outputFile, percentDownsize);
+    await downSize(inputFile, outputFile, downSizeAmount);
 
     return outputFile;
   },
