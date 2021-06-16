@@ -2,11 +2,7 @@ import * as ffmpegPath from "ffmpeg-static";
 import * as ffmpeg from "fluent-ffmpeg";
 import * as shell from "shelljs";
 import { CAPTURE_FOLDER, DEVICE_ID_NONE } from "../common/constants";
-import {
-  MILLISECONDS_IN_MINUTE,
-  MILLISECONDS_IN_SECOND,
-  timeout,
-} from "../common/time";
+import { MILLISECONDS_IN_MINUTE, MILLISECONDS_IN_SECOND } from "../common/time";
 import { slugifyDeviceId } from "../common/types";
 import {
   getLastUserDisconnectedMs,
@@ -18,13 +14,8 @@ import { getConfig } from "./config";
 import { DEFAULT_INTERVAL_MS } from "./cron";
 import { getChronologicalFileList, writeFileAsync } from "./files";
 import { fileIsGifOrMovie, fileIsImage } from "./images";
-import {
-  getOrCreateCameraDevice,
-  moveAxisSpeedStart,
-  moveAxisSpeedStop,
-  stop,
-  takeSnapshot,
-} from "./videoDevices";
+import { stop, takeSnapshot } from "./videoDevices";
+import { DateTime } from "luxon";
 
 ffmpeg.setFfmpegPath(ffmpegPath);
 
@@ -58,8 +49,11 @@ export const CaptureCronJob = {
     const c = await getConfig();
     return c.captureEnable ? c.captureRateMs : DEFAULT_INTERVAL_MS;
   },
-  fn: async nowMs => {
+  fn: async (nowMs: any) => {
     const c = await getConfig();
+
+    const n = DateTime.now();
+
     if (c.captureEnable) {
       console.log(`${nowMs}: taking snapshots for ${c.captureDevices}`);
 

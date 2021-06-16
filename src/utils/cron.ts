@@ -1,8 +1,11 @@
-import { ENABLE_PTZ } from "../common/constants";
-import { MILLISECONDS_IN_SECOND, timeout } from "../common/time";
-import { CaptureCronJob, CameraStreamTimeoutCronJob } from "./timelapse";
+import {
+  MILLISECONDS_IN_MINUTE,
+  MILLISECONDS_IN_SECOND,
+  timeout,
+} from "../common/time";
+import { CameraStreamTimeoutCronJob, CaptureCronJob } from "./timelapse";
 
-export const DEFAULT_INTERVAL_MS = 30 * MILLISECONDS_IN_SECOND;
+export const DEFAULT_INTERVAL_MS = MILLISECONDS_IN_MINUTE;
 
 interface CronJobs {
   name: string;
