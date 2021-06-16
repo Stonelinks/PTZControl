@@ -82,4 +82,6 @@ export const fileIsImage = (f: string) =>
   f.toLowerCase().endsWith("png");
 
 export const fileIsGifOrMovie = (f: string) =>
-  f.toLowerCase().endsWith("gif") || f.toLowerCase().endsWith("mp4");
+  f.toLowerCase().endsWith("gif") ||
+  f.toLowerCase().endsWith("mp4") ||
+  f.toLowerCase().endsWith("webm");

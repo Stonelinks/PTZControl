@@ -15,6 +15,4 @@ export const SERVER_PORT =
   parseInt((process as any).env.SERVER_PORT, 10) || 4001;
 export const CONFIG_FILE = prefixPath("config.json");
 
-export const ENABLE_PTZ = false;
-
 export const DEVICE_ID_NONE = "Null device ID";

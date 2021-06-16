@@ -152,12 +152,15 @@ export const makeTimelapseVideo = async ({
   const fileListPath = `/tmp/timelapse-out-${nowMs}.txt`;
   let ffmpegInstructions = "";
 
-  log(`about to resize ${files.length} images...`);
-
+  const downSizeAmount = files.length > 5000 ? 0.25 : 0.5;
+  log(
+    `about to resize ${files.length} images by ${downSizeAmount *
+      100} percent...`,
+  );
   // tslint:disable-next-line:prefer-for-of
   for (let i = 0; i < files.length; i++) {
     const file = files[i];
-    const downsizePath = await cachedDownsize(file, 0.5);
+    const downsizePath = await cachedDownsize(file, downSizeAmount);
     log(`(${i + 1}/${files.length}) downsized ${file}`);
     ffmpegInstructions += `file '${downsizePath}'\n`;
     ffmpegInstructions += `duration ${delaySeconds}\n`;
@@ -172,13 +175,14 @@ export const makeTimelapseVideo = async ({
   ffmpeg()
     .addInput(fileListPath)
     .inputOptions(["-f", "concat", "-safe", "0"])
+    // .videoCodec("libvpx-vp9")
     .videoCodec("libx264")
     .noAudio()
     .on("start", command => {
       log("ffmpeg process started: " + command);
     })
     .on("progress", progress => {
-      log("processing: " + parseInt(progress.percent, 10) + "% done");
+      log("processing: " + progress.percent + "% done");
     })
     .on("error", (err, stdout, stderr) => {
       log("Error: " + err);

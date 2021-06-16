@@ -53,9 +53,12 @@ const ResultsFileList = ({
             border: "1px grey solid",
           }}
         >
-          {f.endsWith("mp4") ? (
+          {f.endsWith("mp4") || f.endsWith("webm") ? (
             <video style={{ width: "100%", height: "auto" }} controls>
-              <source src={`${BASE_URL}/${f}`} type="video/mp4" />
+              <source
+                src={`${BASE_URL}/${f}`}
+                type={`video/${f.split(".").pop()}`}
+              />
             </video>
           ) : (
             <img

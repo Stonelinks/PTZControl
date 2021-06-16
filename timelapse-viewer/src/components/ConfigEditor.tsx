@@ -1,6 +1,6 @@
 import React from "react";
 import { connect, ConnectedProps } from "react-redux";
-import { DEVICE_ID_NONE, ENABLE_PTZ } from "../common/constants";
+import { DEVICE_ID_NONE } from "../common/constants";
 import { nothing } from "../common/nothing";
 import { Config } from "../common/types";
 import { RootState } from "../redux";
