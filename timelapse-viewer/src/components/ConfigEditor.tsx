@@ -86,6 +86,16 @@ const ConfigEditorItems: ConfigEditorItem[] = [
     configKey: "captureWindowEnd",
     displayText: "Window end",
   },
+  {
+    type: INPUT_TYPES.BOOLEAN,
+    configKey: "windowExternalTriggerEnable",
+    displayText: "Exernal trigger enable",
+  },
+  {
+    type: INPUT_TYPES.STRING,
+    configKey: "windowExternalTriggerUrl",
+    displayText: "Exernal trigger URL",
+  },
   { type: INPUT_TYPES.HEADING, displayText: "Controls config" },
   {
     type: INPUT_TYPES.BOOLEAN,

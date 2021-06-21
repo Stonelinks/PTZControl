@@ -23,6 +23,9 @@ export interface Config extends JsonObject {
   controlsEnable: boolean;
   controlsDevice: DeviceId;
 
+  windowExternalTriggerEnable: boolean;
+  windowExternalTriggerUrl: string;
+
   // panStepEnable: boolean;
   // panStepRateMs: number;
   // panStepDirection: "left" | "right";

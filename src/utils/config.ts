@@ -24,6 +24,8 @@ const makeDefaultConfig = async (): Promise<Config> => {
     captureWindowEnable: false,
     captureWindowStart: "10:00",
     captureWindowEnd: "11:00",
+    windowExternalTriggerEnable: false,
+    windowExternalTriggerUrl: "http://192.168.50.121/",
 
     controlsEnable: false,
     controlsDevice: firstDevice,

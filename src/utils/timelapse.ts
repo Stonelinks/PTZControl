@@ -16,6 +16,7 @@ import { getChronologicalFileList, writeFileAsync } from "./files";
 import { fileIsGifOrMovie, fileIsImage } from "./images";
 import { stop, takeSnapshot } from "./videoDevices";
 import { DateTime, Interval } from "luxon";
+import * as fetch from "node-fetch";
 
 ffmpeg.setFfmpegPath(ffmpegPath);
 
@@ -80,12 +81,26 @@ export const CaptureCronJob = {
 
         if (!c.captureEnable) {
           console.log(`${nowMs}: capture is not enabled, enabling!`);
+
+          if (c.windowExternalTriggerEnable) {
+            const u = `${c.windowExternalTriggerUrl}RELAY=ON`;
+            console.log(`${nowMs}: enabling external trigger at ${u}`);
+            fetch(u);
+          }
+
           await setConfigValue("captureEnable", true);
         }
       } else {
         console.log(`${nowMs}: outside capture window interval`);
         if (c.captureEnable) {
           console.log(`${nowMs}: capture is enabled, disabling!`);
+
+          if (c.windowExternalTriggerEnable) {
+            const u = `${c.windowExternalTriggerUrl}RELAY=OFF`;
+            console.log(`${nowMs}: disabling external trigger at ${u}`);
+            fetch(u);
+          }
+
           await setConfigValue("captureEnable", false);
         }
       }
