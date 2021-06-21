@@ -10,12 +10,12 @@ import {
 } from "../routes/videoDevices";
 import { deleteFile } from "../utils/files";
 import { cachedDownsize } from "../utils/images";
-import { getConfig } from "./config";
+import { getConfig, setConfigValue } from "./config";
 import { DEFAULT_INTERVAL_MS } from "./cron";
 import { getChronologicalFileList, writeFileAsync } from "./files";
 import { fileIsGifOrMovie, fileIsImage } from "./images";
 import { stop, takeSnapshot } from "./videoDevices";
-import { DateTime } from "luxon";
+import { DateTime, Interval } from "luxon";
 
 ffmpeg.setFfmpegPath(ffmpegPath);
 
@@ -50,9 +50,49 @@ export const CaptureCronJob = {
     return c.captureEnable ? c.captureRateMs : DEFAULT_INTERVAL_MS;
   },
   fn: async (nowMs: any) => {
-    const c = await getConfig();
+    let c = await getConfig();
 
-    const n = DateTime.now();
+    if (c.captureWindowEnable) {
+      const [startHours, startMinutes] = c.captureWindowStart.split(":");
+      const start = DateTime.now()
+        .startOf("day")
+        .plus({
+          hours: parseInt(startHours, 10),
+          minutes: parseInt(startMinutes, 10),
+        });
+      const [endHours, endMinutes] = c.captureWindowEnd.split(":");
+      let end = DateTime.now()
+        .startOf("day")
+        .plus({
+          hours: parseInt(endHours, 10),
+          minutes: parseInt(endMinutes, 10),
+        });
+
+      // if the end comes before the start, its referring to tomorrow
+      if (end.toMillis() < start.toMillis()) {
+        end = end.plus({
+          days: 1,
+        });
+      }
+
+      if (Interval.fromDateTimes(start, end).contains(DateTime.now())) {
+        console.log(`${nowMs}: within capture window interval`);
+
+        if (!c.captureEnable) {
+          console.log(`${nowMs}: capture is not enabled, enabling!`);
+          await setConfigValue("captureEnable", true);
+        }
+      } else {
+        console.log(`${nowMs}: outside capture window interval`);
+        if (c.captureEnable) {
+          console.log(`${nowMs}: capture is enabled, disabling!`);
+          await setConfigValue("captureEnable", false);
+        }
+      }
+
+      // refresh config
+      c = await getConfig();
+    }
 
     if (c.captureEnable) {
       console.log(`${nowMs}: taking snapshots for ${c.captureDevices}`);

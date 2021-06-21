@@ -34,16 +34,20 @@ const ConfigBooleanInput = ({
 }: Props) => {
   const [value, setValue] = React.useState(configValue);
   const handleChange = async (e: any) => {
-    const newConfigValue = Boolean(e.target.checked) ? "True" : "False";
-    setValue(newConfigValue);
-    await onSetConfigValue(configKey, newConfigValue);
+    const checked = Boolean(e.target.checked);
+    setValue(checked);
+    await onSetConfigValue(configKey, checked ? "True" : "False");
   };
 
   return (
     <div>
       <label>
         <span>{displayText}</span>
-        <Toggle value={value ? "yes" : "no"} onChange={handleChange} />
+        <Toggle
+          defaultChecked={value}
+          value={value ? "yes" : "no"}
+          onChange={handleChange}
+        />
       </label>
     </div>
   );
