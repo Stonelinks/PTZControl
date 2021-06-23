@@ -54,6 +54,7 @@ export const CaptureCronJob = {
     let c = await getConfig();
 
     if (c.captureWindowEnable) {
+      console.log(`${nowMs}: begin capture window calculations`);
       const [startHours, startMinutes] = c.captureWindowStart.split(":");
       const start = DateTime.now()
         .startOf("day")
@@ -71,6 +72,9 @@ export const CaptureCronJob = {
 
       // if the end comes before the start, its referring to tomorrow
       if (end.toMillis() < start.toMillis()) {
+        console.log(
+          `${nowMs}: end comes before start, so assume it refers to tomorrow (end: ${end.toMillis()} < start: ${start.toMillis()}), adding a day`,
+        );
         end = end.plus({
           days: 1,
         });
