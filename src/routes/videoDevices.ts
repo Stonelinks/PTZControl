@@ -1,19 +1,20 @@
 import { Application } from "express";
 import { decode } from "../common/encode";
+import { MILLISECONDS_IN_SECOND, timeout } from "../common/time";
+import { DeviceId } from "../common/types";
+import { now } from "../utils/cron";
 import {
-  listVideoDevices,
-  takeSnapshot,
-  start,
-  getOrCreateCameraDevice,
-  moveAxisRelative,
   getControl,
+  getOrCreateCameraDevice,
   getZoomInfo,
+  listVideoDevices,
+  moveAxisRelative,
   moveAxisSpeedStart,
   moveAxisSpeedStop,
   setCameraDeviceZoom,
+  start,
+  takeSnapshot,
 } from "../utils/videoDevices";
-import { timeout, MILLISECONDS_IN_SECOND } from "../common/time";
-import { DeviceId } from "../common/types";
 
 const numVideoUsersConnected: Record<DeviceId, number> = {};
 const lastUserDisconnectedMs: Record<DeviceId, number> = {};
@@ -46,7 +47,7 @@ const videoStreamUserConnected = (deviceId: DeviceId) => {
 
 const videoStreamUserDisconnected = (deviceId: DeviceId) => {
   console.log("user disconnected from video stream", deviceId);
-  lastUserDisconnectedMs[deviceId] = Date.now();
+  lastUserDisconnectedMs[deviceId] = now();
   if (!numVideoUsersConnected.hasOwnProperty(deviceId)) {
     return;
   }

@@ -2,6 +2,7 @@ import { Application } from "express";
 import { THUMBS_FOLDER_NAME } from "../common/constants";
 import { decode } from "../common/encode";
 import { slugifyDeviceId } from "../common/types";
+import { now } from "../utils/cron";
 import { listDirectory, stat } from "../utils/files";
 import {
   getCaptureDir,
@@ -86,7 +87,7 @@ export const registerTimelapseRoutes = async (app: Application) => {
     let files = await getChronologicalTimelapseImageList(`${thisCaptureDir}`);
     files = files.map(f => `${thisCaptureDir}/${f}`);
 
-    const nowMs = Date.now();
+    const nowMs = now();
     const outPath = `${thisCaptureDir}/out-${nowMs}.mp4`;
 
     await makeTimelapseVideo({
@@ -125,7 +126,7 @@ export const registerTimelapseRoutes = async (app: Application) => {
 
       files = files.map(f => `${thisCaptureDir}/${f}`);
 
-      const nowMs = Date.now();
+      const nowMs = now();
       const outPath = `${thisCaptureDir}/out-${deviceIdSlug}-${nowMs}.mp4`;
 
       await makeTimelapseVideo({

@@ -1,3 +1,4 @@
+import { DateTime } from "luxon";
 import {
   MILLISECONDS_IN_MINUTE,
   MILLISECONDS_IN_SECOND,
@@ -6,6 +7,11 @@ import {
 import { CameraStreamTimeoutCronJob, CaptureCronJob } from "./timelapse";
 
 export const DEFAULT_INTERVAL_MS = MILLISECONDS_IN_MINUTE;
+
+export const now = () => Date.now();
+
+export const localNow = () =>
+  DateTime.fromMillis(now()).setZone("America/Los_Angeles");
 
 interface CronJobs {
   name: string;
@@ -39,7 +45,7 @@ class Cron {
       }
 
       const lastRunMs = this.lastRunMs[i];
-      const nowMs = Date.now();
+      const nowMs = now();
       let shouldRun = false;
       if (!lastRunMs) {
         shouldRun = true;

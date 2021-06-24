@@ -1,5 +1,7 @@
 import * as ffmpegPath from "ffmpeg-static";
 import * as ffmpeg from "fluent-ffmpeg";
+import { Interval } from "luxon";
+import * as fetch from "node-fetch";
 import * as shell from "shelljs";
 import { CAPTURE_FOLDER, DEVICE_ID_NONE } from "../common/constants";
 import { MILLISECONDS_IN_MINUTE, MILLISECONDS_IN_SECOND } from "../common/time";
@@ -11,12 +13,10 @@ import {
 import { deleteFile } from "../utils/files";
 import { cachedDownsize } from "../utils/images";
 import { getConfig, setConfigValue } from "./config";
-import { DEFAULT_INTERVAL_MS } from "./cron";
+import { DEFAULT_INTERVAL_MS, localNow } from "./cron";
 import { getChronologicalFileList, writeFileAsync } from "./files";
 import { fileIsGifOrMovie, fileIsImage } from "./images";
 import { stop, takeSnapshot } from "./videoDevices";
-import { DateTime, Interval } from "luxon";
-import * as fetch from "node-fetch";
 
 ffmpeg.setFfmpegPath(ffmpegPath);
 
@@ -50,20 +50,20 @@ export const CaptureCronJob = {
     const c = await getConfig();
     return c.captureEnable ? c.captureRateMs : DEFAULT_INTERVAL_MS;
   },
-  fn: async (nowMs: any) => {
+  fn: async (nowMs: number) => {
     let c = await getConfig();
 
     if (c.captureWindowEnable) {
       console.log(`${nowMs}: begin capture window calculations`);
       const [startHours, startMinutes] = c.captureWindowStart.split(":");
-      const start = DateTime.now()
+      const start = localNow()
         .startOf("day")
         .plus({
           hours: parseInt(startHours, 10),
           minutes: parseInt(startMinutes, 10),
         });
       const [endHours, endMinutes] = c.captureWindowEnd.split(":");
-      let end = DateTime.now()
+      let end = localNow()
         .startOf("day")
         .plus({
           hours: parseInt(endHours, 10),
@@ -73,14 +73,18 @@ export const CaptureCronJob = {
       // if the end comes before the start, its referring to tomorrow
       if (end.toMillis() < start.toMillis()) {
         console.log(
-          `${nowMs}: end comes before start, so assume it refers to tomorrow (end: ${end.toMillis()} < start: ${start.toMillis()}), adding a day`,
+          `${nowMs}: end comes before start so assume it refers to tomorrow, adding a day`,
         );
         end = end.plus({
           days: 1,
         });
       }
 
-      if (Interval.fromDateTimes(start, end).contains(DateTime.now())) {
+      console.log(
+        `${nowMs}: localNow = ${localNow()}, start = ${start}, end = ${end}`,
+      );
+
+      if (Interval.fromDateTimes(start, end).contains(localNow())) {
         console.log(`${nowMs}: within capture window interval`);
 
         if (!c.captureEnable) {
