@@ -35,7 +35,7 @@ const CreateTimelapseButtons = ({
 }: Props) => {
   React.useEffect(() => {
     onGetCaptureFiles(captureId);
-  }, [onGetCaptureFiles]);
+  }, [onGetCaptureFiles, captureId]);
 
   const deviceIds: string[] = [];
   if (captureFiles && captureFiles.length) {

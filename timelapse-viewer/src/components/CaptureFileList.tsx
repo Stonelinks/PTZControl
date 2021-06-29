@@ -32,7 +32,7 @@ const CaptureFileList = ({
 }: Props) => {
   React.useEffect(() => {
     onGetCaptureFiles(captureId);
-  }, [onGetCaptureFiles]);
+  }, [onGetCaptureFiles, captureId]);
 
   const hasFiles = captureFiles && captureFiles.length;
 

@@ -55,7 +55,7 @@ const CreateTimelapsePage = ({ captureId, deviceId }: Props) => {
 
     xhr.open("GET", url, true);
     xhr.send();
-  }, [setResponse]);
+  }, [setResponse, captureId, deviceId]);
 
   return <pre style={{ whiteSpace: "pre-wrap" }}>{response}</pre>;
 };
