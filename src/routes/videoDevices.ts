@@ -1,8 +1,16 @@
-import { Application } from "express";
-import { decode } from "../common/encode";
+import { Application } from "express-ws";
+import { FfmpegCommand } from "fluent-ffmpeg";
+import {
+  HTTP_VIDEO_STREAM_SERVER_RECEIVER,
+  SERVER_PORT,
+} from "../common/constants";
+import { decode, encode } from "../common/encode";
 import { MILLISECONDS_IN_SECOND, timeout } from "../common/time";
 import { DeviceId } from "../common/types";
 import { now } from "../utils/cron";
+import { getFfmpeg } from "../utils/ffmpeg";
+import * as http from "http";
+import { EventEmitter } from "events";
 import {
   getControl,
   getOrCreateCameraDevice,
@@ -16,8 +24,40 @@ import {
   takeSnapshot,
 } from "../utils/videoDevices";
 
-const numVideoUsersConnected: Record<DeviceId, number> = {};
+export const numVideoUsersConnected: Record<DeviceId, number> = {};
 const lastUserDisconnectedMs: Record<DeviceId, number> = {};
+const ffmpegHandles: Record<DeviceId, FfmpegCommand> = {};
+const httpVideoStreamReceiverEmitters: Record<DeviceId, EventEmitter> = {};
+
+const getOrCreateEventEmitterForDeviceId = (
+  deviceId: DeviceId,
+): EventEmitter => {
+  if (!httpVideoStreamReceiverEmitters.hasOwnProperty(deviceId)) {
+    httpVideoStreamReceiverEmitters[deviceId] = new EventEmitter();
+  }
+  return httpVideoStreamReceiverEmitters[deviceId];
+};
+
+// HTTP Server to accept incoming MPEG-TS Stream from ffmpeg
+const httpVideoStreamReceiver = http.createServer((request, response) => {
+  const params = request.url.substr(1).split("/");
+  const deviceId = decode(params[0]);
+
+  response.connection.setTimeout(0);
+  console.log(
+    `httpVideoStreamReceiver: Stream Connected to ${deviceId}: ${request.socket.remoteAddress}:${request.socket.remotePort}`,
+  );
+  request.on("data", data => {
+    // console.log(`httpVideoStreamReceiver: data for ${deviceId}`);
+    getOrCreateEventEmitterForDeviceId(deviceId).emit("data", data);
+  });
+  request.on("end", () => {
+    console.log("close");
+  });
+});
+
+httpVideoStreamReceiver.headersTimeout = 0;
+httpVideoStreamReceiver.listen(HTTP_VIDEO_STREAM_SERVER_RECEIVER);
 
 export const getLastUserDisconnectedMs = (deviceId: DeviceId) => {
   const r = numVideoUsersConnected[deviceId];
@@ -30,11 +70,14 @@ export const getLastUserDisconnectedMs = (deviceId: DeviceId) => {
 
 export const isStreamingVideo = (deviceId: DeviceId) => {
   const r = numVideoUsersConnected[deviceId];
+  let ret = false;
   if (!r) {
-    return false;
+    ret = false;
   } else {
-    return r > 1;
+    ret = r > 1;
   }
+  console.log(`isStreamingVideo ${deviceId} ${ret}`);
+  return ret;
 };
 
 const videoStreamUserConnected = (deviceId: DeviceId) => {
@@ -55,6 +98,58 @@ const videoStreamUserDisconnected = (deviceId: DeviceId) => {
   if (numVideoUsersConnected[deviceId] < 0) {
     numVideoUsersConnected[deviceId] = 0;
   }
+  if (numVideoUsersConnected[deviceId] === 1) {
+    stopFfmpegStreamer(deviceId);
+  }
+};
+
+const startFfmpegStreamer = (deviceId: DeviceId) => {
+  console.log(`startFfmpegStreamer`);
+  if (ffmpegHandles.hasOwnProperty(deviceId)) {
+    throw Error(`ffmpeg handle already exists for ${deviceId}`);
+  }
+
+  const command = getFfmpeg()
+    .input(
+      `http://localhost:${SERVER_PORT}/video-device/${encode(
+        deviceId,
+      )}/stream.mjpg`,
+    )
+    .noAudio()
+    .format("mpegts")
+    .videoCodec("mpeg1video")
+    .size("640x480")
+    .videoBitrate("1000k")
+    .outputOptions("-bf 0")
+    .output(
+      `http://localhost:${HTTP_VIDEO_STREAM_SERVER_RECEIVER}/${encode(
+        deviceId,
+      )}`,
+    );
+
+  command.on("error", () => {
+    console.log(`ffmpeg has been killed for ${deviceId}`);
+  });
+
+  ffmpegHandles[deviceId] = command;
+
+  command.run();
+  console.log(`ffmpeg running for ${deviceId}`);
+
+  // ffmpeg -i http://localhost:4001/video-device/JTJGZGV2JTJGdmlkZW8w/stream.mjpg -an -f mpegts -codec:v mpeg1video -s 640x480 -b:v 1000k -bf 0 http://localhost:8081/yoursecret
+};
+
+const stopFfmpegStreamer = (deviceId: DeviceId) => {
+  console.log(`stopFfmpegStreamer`);
+  if (!ffmpegHandles.hasOwnProperty(deviceId)) {
+    throw Error(`no ffmpeg handle exists for ${deviceId}`);
+  }
+
+  const command = ffmpegHandles[deviceId];
+
+  command.kill("SIGKILL");
+
+  delete ffmpegHandles[deviceId];
 };
 
 export const registerVideoDeviceRoutes = async (app: Application) => {
@@ -83,7 +178,7 @@ export const registerVideoDeviceRoutes = async (app: Application) => {
 
     const writeFrame = (buffer: Buffer) => {
       res.write(
-        `--myboundary\nContent-Type: image/jpg\nContent-length: ${buffer.length}\n\n`,
+        `--myboundary\nContent-Type: image/jpeg\nContent-length: ${buffer.length}\n\n`,
       );
       res.write(buffer);
     };
@@ -94,6 +189,28 @@ export const registerVideoDeviceRoutes = async (app: Application) => {
       getOrCreateCameraDevice(deviceId).emitter.removeListener(
         "frame",
         writeFrame,
+      );
+    });
+  });
+
+  app.ws("/video-device/:deviceId/stream.ws", (ws, req) => {
+    const deviceId = decode(req.params.deviceId);
+
+    videoStreamUserConnected(deviceId);
+
+    if (!ffmpegHandles.hasOwnProperty(deviceId)) {
+      startFfmpegStreamer(deviceId);
+    }
+
+    const listener = data => ws.send(data);
+    getOrCreateEventEmitterForDeviceId(deviceId).addListener("data", listener);
+
+    ws.on("close", () => {
+      videoStreamUserDisconnected(deviceId);
+      // stopFfmpegStreamer(deviceId)
+      getOrCreateEventEmitterForDeviceId(deviceId).removeListener(
+        "data",
+        listener,
       );
     });
   });

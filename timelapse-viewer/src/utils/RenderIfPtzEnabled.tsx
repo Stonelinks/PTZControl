@@ -30,8 +30,6 @@ const RenderIfPtzEnabled = ({
     onGetConfig();
   }, [onGetConfig]);
 
-  console.log("ass", controlsEnable);
-
   return controlsEnable ? <WrappedComponent /> : null;
 };
 

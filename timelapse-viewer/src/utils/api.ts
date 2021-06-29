@@ -3,11 +3,13 @@ import { SERVER_PORT } from "../common/constants";
 import { MILLISECONDS_IN_SECOND } from "../common/time";
 import { encode } from "../common/encode";
 
-export const BASE_URL =
+export const HTTP_BASE_URL =
   process.env.PUBLIC_URL || `http://${window.location.hostname}:${SERVER_PORT}`;
+export const WS_BASE_URL =
+  process.env.PUBLIC_URL || `ws://${window.location.hostname}:${SERVER_PORT}`;
 
 export const apiFetch = async (url: string): Promise<any> => {
-  const res = await window.fetch(`${BASE_URL}/${url}`);
+  const res = await window.fetch(`${HTTP_BASE_URL}/${url}`);
   const json = await res.json();
   return json;
 };

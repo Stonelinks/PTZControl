@@ -2,7 +2,7 @@ import React from "react";
 import { connect, ConnectedProps } from "react-redux";
 import { RootState } from "../redux";
 import { apiCall } from "../redux/api/actions";
-import { BASE_URL } from "../utils/api";
+import { HTTP_BASE_URL } from "../utils/api";
 import { encode } from "../common/encode";
 import ExpandableSection from "./ExpandableSection";
 
@@ -55,7 +55,7 @@ const CaptureFileList = ({
           }}
         >
           <img
-            src={`${BASE_URL}/thumb/${encode(f)}`}
+            src={`${HTTP_BASE_URL}/thumb/${encode(f)}`}
             style={{ width: "100%", height: "auto" }}
           />
           <div>
@@ -73,7 +73,7 @@ const CaptureFileList = ({
                 float: "right",
               }}
             >
-              <a target="_blank" href={`${BASE_URL}/${f}`}>
+              <a target="_blank" href={`${HTTP_BASE_URL}/${f}`}>
                 Download
               </a>
             </pre>

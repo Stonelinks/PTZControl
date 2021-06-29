@@ -10,8 +10,15 @@ import { registerConfigRoutes } from "./routes/config";
 import { registerTimelapseRoutes } from "./routes/timelapse";
 import { getThumbnail } from "./utils/images";
 import { decode } from "./common/encode";
+import * as expressWs from "express-ws";
 
-const app: express.Application = express();
+const app = (express() as unknown) as expressWs.Application;
+
+expressWs(app, null, {
+  wsOptions: {
+    perMessageDeflate: false,
+  },
+});
 
 app.use(express.static(VIEWER_FOLDER));
 app.use(express.static(CAPTURE_FOLDER));

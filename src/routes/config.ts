@@ -1,4 +1,4 @@
-import { Application } from "express";
+import { Application } from "express-ws";
 import { getConfig, setConfigValue } from "../utils/config";
 import { decode } from "../common/encode";
 import { Config } from "../common/types";

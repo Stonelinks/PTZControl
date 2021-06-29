@@ -1,4 +1,4 @@
-import { Application } from "express";
+import { Application } from "express-ws";
 import { THUMBS_FOLDER_NAME } from "../common/constants";
 import { decode } from "../common/encode";
 import { slugifyDeviceId } from "../common/types";
