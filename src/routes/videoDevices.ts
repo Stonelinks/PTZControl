@@ -3,6 +3,8 @@ import { FfmpegCommand } from "fluent-ffmpeg";
 import {
   HTTP_VIDEO_STREAM_SERVER_RECEIVER,
   SERVER_PORT,
+  VIDEO_STREAM_HEIGHT,
+  VIDEO_STREAM_WIDTH,
 } from "../common/constants";
 import { decode, encode } from "../common/encode";
 import { MILLISECONDS_IN_SECOND, timeout } from "../common/time";
@@ -118,14 +120,19 @@ const startFfmpegStreamer = (deviceId: DeviceId) => {
     .noAudio()
     .format("mpegts")
     .videoCodec("mpeg1video")
-    .size("640x480")
-    .videoBitrate("1000k")
+    .size(`${VIDEO_STREAM_WIDTH}x${VIDEO_STREAM_HEIGHT}`)
+    .videoBitrate("256k")
+    // .videoBitrate("1000k")
     .outputOptions("-bf 0")
     .output(
       `http://localhost:${HTTP_VIDEO_STREAM_SERVER_RECEIVER}/${encode(
         deviceId,
       )}`,
     );
+
+  command.on("start", commandStr => {
+    console.log(`ffmpeg process started: ${commandStr}`);
+  });
 
   command.on("error", () => {
     console.log(`ffmpeg has been killed for ${deviceId}`);
@@ -135,8 +142,6 @@ const startFfmpegStreamer = (deviceId: DeviceId) => {
 
   command.run();
   console.log(`ffmpeg running for ${deviceId}`);
-
-  // ffmpeg -i http://localhost:4001/video-device/JTJGZGV2JTJGdmlkZW8w/stream.mjpg -an -f mpegts -codec:v mpeg1video -s 640x480 -b:v 1000k -bf 0 http://localhost:8081/yoursecret
 };
 
 const stopFfmpegStreamer = (deviceId: DeviceId) => {

@@ -1,6 +1,7 @@
 import React from "react";
 import _ from "lodash";
 import { MILLISECONDS_IN_SECOND } from "../common/time";
+import { VIDEO_STREAM_WIDTH, VIDEO_STREAM_HEIGHT } from "../common/constants";
 
 // tslint:disable-next-line:no-var-requires
 const JSMpeg = require("@cycjimmy/jsmpeg-player");
@@ -61,7 +62,10 @@ export class JsmpegPlayer extends React.Component<Props> {
     console.log(`JsmpegPlayer render`);
     return (
       <div
-        style={{ width: "640px", height: "480px" }}
+        style={{
+          width: `${VIDEO_STREAM_WIDTH}px`,
+          height: `${VIDEO_STREAM_HEIGHT}px`,
+        }}
         ref={videoWrapper => (this.els.videoWrapper = videoWrapper)}
       />
     );

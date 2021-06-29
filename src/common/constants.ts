@@ -14,4 +14,7 @@ export const SERVER_PORT =
 export const HTTP_VIDEO_STREAM_SERVER_RECEIVER = 8010;
 export const CONFIG_FILE = prefixPath("config.json");
 
+export const VIDEO_STREAM_WIDTH = 640;
+export const VIDEO_STREAM_HEIGHT = 480;
+
 export const DEVICE_ID_NONE = "Null device ID";

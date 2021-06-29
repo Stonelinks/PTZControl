@@ -5,7 +5,7 @@ import { encode } from "../common/encode";
 import { DeviceId } from "../common/types";
 import { RootState } from "../redux";
 import { apiCall } from "../redux/api/actions";
-import { HTTP_BASE_URL, WS_BASE_URL } from "../utils/api";
+import { WS_BASE_URL } from "../utils/api";
 import { JsmpegPlayer } from "./JsmpegPlayer";
 import VideoDeviceControl from "./VideoDeviceControl";
 
@@ -45,7 +45,7 @@ const VideoDeviceViewer = ({
             return (
               <div key={deviceId + index}>
                 <h3>{deviceId}</h3>
-                <img
+                {/* <img
                   src={`${HTTP_BASE_URL}/video-device/${encode(
                     deviceId,
                   )}/stream.mjpg`}
@@ -58,7 +58,7 @@ const VideoDeviceViewer = ({
                     maxHeight: "70vh",
                     maxWidth: "100%",
                   }}
-                />
+                /> */}
                 <JsmpegPlayer
                   videoUrl={`${WS_BASE_URL}/video-device/${encode(
                     deviceId,
