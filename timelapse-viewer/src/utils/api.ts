@@ -5,8 +5,9 @@ import { encode } from "../common/encode";
 
 export const HTTP_BASE_URL =
   process.env.PUBLIC_URL || `http://${window.location.hostname}:${SERVER_PORT}`;
-export const WS_BASE_URL =
-  process.env.PUBLIC_URL || `ws://${window.location.hostname}:${SERVER_PORT}`;
+export const WS_BASE_URL = process.env.PUBLIC_URL
+  ? `ws://${window.location.hostname}${process.env.PUBLIC_URL}`
+  : `ws://${window.location.hostname}:${SERVER_PORT}`;
 
 export const apiFetch = async (url: string): Promise<any> => {
   const res = await window.fetch(`${HTTP_BASE_URL}/${url}`);
