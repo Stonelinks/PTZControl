@@ -1,5 +1,3 @@
-import * as ffmpegPath from "ffmpeg-static";
-import * as ffmpeg from "fluent-ffmpeg";
 import { Interval } from "luxon";
 import * as fetch from "node-fetch";
 import * as shell from "shelljs";
@@ -9,16 +7,16 @@ import { slugifyDeviceId } from "../common/types";
 import {
   getLastUserDisconnectedMs,
   isStreamingVideo,
+  numVideoUsersConnected,
 } from "../routes/videoDevices";
 import { deleteFile } from "../utils/files";
 import { cachedDownsize } from "../utils/images";
 import { getConfig, setConfigValue } from "./config";
 import { DEFAULT_INTERVAL_MS, localNow } from "./cron";
+import { getFfmpeg } from "./ffmpeg";
 import { getChronologicalFileList, writeFileAsync } from "./files";
 import { fileIsGifOrMovie, fileIsImage } from "./images";
 import { stop, takeSnapshot } from "./videoDevices";
-
-ffmpeg.setFfmpegPath(ffmpegPath);
 
 export const getCaptureDir = async () => {
   const captureDir = `${CAPTURE_FOLDER}`;
@@ -141,12 +139,16 @@ export const CaptureCronJob = {
 
 export const CameraStreamTimeoutCronJob = {
   name: "camera stream timeout",
-  intervalMs: 2 * MILLISECONDS_IN_MINUTE,
+  intervalMs: 10 * MILLISECONDS_IN_SECOND,
+  // intervalMs: 2 * MILLISECONDS_IN_MINUTE,
   fn: async () => {
     const c = await getConfig();
     // tslint:disable-next-line:prefer-for-of
     for (let index = 0; index < c.captureDevices.length; index++) {
       const deviceId = c.captureDevices[index];
+      console.log(
+        `numVideoUsersConnected for ${deviceId}: ${numVideoUsersConnected[deviceId]}`,
+      );
       if (
         !(
           c.captureEnable ||
@@ -235,7 +237,7 @@ export const makeTimelapseVideo = async ({
   await writeFileAsync(fileListPath, ffmpegInstructions);
   log(`made a list of ${files.length} images to ${fileListPath}`);
 
-  ffmpeg()
+  getFfmpeg()
     .addInput(fileListPath)
     .inputOptions(["-f", "concat", "-safe", "0"])
     // .videoCodec("libvpx-vp9")

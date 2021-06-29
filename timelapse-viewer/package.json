@@ -3,6 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
+    "@cycjimmy/jsmpeg-player": "^5.0.1",
     "@types/lodash.throttle": "^4.1.6",
     "@types/mousetrap": "^1.6.3",
     "@types/node": "^12.0.0",

@@ -1,7 +1,7 @@
 import React from "react";
 import { connect, ConnectedProps } from "react-redux";
 import { RootState } from "../redux";
-import { BASE_URL, fillInUrlTemplate } from "../utils/api";
+import { HTTP_BASE_URL, fillInUrlTemplate } from "../utils/api";
 import { MILLISECONDS_IN_SECOND } from "../common/time";
 import { frontendPath, navigate } from "../utils/url";
 
@@ -30,7 +30,7 @@ const CreateTimelapsePage = ({ captureId, deviceId }: Props) => {
   React.useEffect(() => {
     const delayMs = window.prompt("Enter frame delay (ms)", "1000");
 
-    let urlTemplate = `${BASE_URL}/timelapse/capture/:captureId/create/:delayMs`;
+    let urlTemplate = `${HTTP_BASE_URL}/timelapse/capture/:captureId/create/:delayMs`;
     if (deviceId) {
       urlTemplate += `/device/:deviceId`;
     }
