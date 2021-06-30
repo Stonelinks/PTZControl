@@ -3,4 +3,4 @@ import * as ffmpeg from "fluent-ffmpeg";
 
 ffmpeg.setFfmpegPath(ffmpegPath);
 
-export const getFfmpeg = () => ffmpeg();
+export const getFfmpeg = (o?: ffmpeg.FfmpegCommandOptions) => ffmpeg(o);

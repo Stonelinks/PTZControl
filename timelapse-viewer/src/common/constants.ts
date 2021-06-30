@@ -13,7 +13,6 @@ export const THUMBS_FOLDER_NAME = ".thumbs";
 export const VIEWER_FOLDER = path.resolve("./timelapse-viewer/build");
 export const SERVER_PORT =
   parseInt((process as any).env.SERVER_PORT, 10) || 4001;
-export const HTTP_VIDEO_STREAM_SERVER_RECEIVER = 8010;
 export const CONFIG_FILE = prefixPath("config.json");
 
 export const VIDEO_STREAM_WIDTH = 640;
