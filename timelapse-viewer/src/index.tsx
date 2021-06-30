@@ -6,11 +6,12 @@ import { Provider } from "react-redux";
 import { createStore, applyMiddleware } from "redux";
 import thunk from "redux-thunk";
 import rootReducer from "./redux";
+import { isLocalhost } from "./utils/url";
 
 // tslint:disable-next-line:no-var-requires
 const { LocationProvider } = require("react-location");
 
-initUpdateCheckInterval();
+if (isLocalhost) initUpdateCheckInterval();
 
 const store = createStore(rootReducer, applyMiddleware(thunk));
 

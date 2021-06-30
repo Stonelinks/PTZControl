@@ -10,3 +10,5 @@ export const frontendPath = (p: string) => {
 export const navigate = (p: string) => {
   window.location.href = p;
 };
+
+export const isLocalhost = window.location.hostname === "localhost";

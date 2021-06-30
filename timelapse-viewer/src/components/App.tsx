@@ -1,7 +1,7 @@
 import React from "react";
 import { decode } from "../common/encode";
 import { apiFetch } from "../utils/api";
-import { frontendPath, reload } from "../utils/url";
+import { frontendPath, isLocalhost, reload } from "../utils/url";
 import CaptureFileList from "./CaptureFileList";
 import CaptureList from "./CaptureList";
 import ConfigEditor from "./ConfigEditor";
@@ -22,8 +22,7 @@ enum CONNECTIVITY_STATE {
 
 const App = () => {
   const [connectivityState, setConnectivityState] = React.useState(
-    // CONNECTIVITY_STATE.connected,
-    CONNECTIVITY_STATE.unknown,
+    isLocalhost ? CONNECTIVITY_STATE.unknown : CONNECTIVITY_STATE.connected,
   );
 
   React.useEffect(() => {
