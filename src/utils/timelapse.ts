@@ -7,7 +7,6 @@ import { slugifyDeviceId } from "../common/types";
 import {
   getLastUserDisconnectedMs,
   isStreamingVideo,
-  numVideoUsersConnected,
 } from "../routes/videoDevices";
 import { deleteFile } from "../utils/files";
 import { cachedDownsize } from "../utils/images";
@@ -145,9 +144,6 @@ export const CameraStreamTimeoutCronJob = {
     // tslint:disable-next-line:prefer-for-of
     for (let index = 0; index < c.captureDevices.length; index++) {
       const deviceId = c.captureDevices[index];
-      console.log(
-        `numVideoUsersConnected for ${deviceId}: ${numVideoUsersConnected[deviceId]}`,
-      );
       if (
         !(
           c.captureEnable ||

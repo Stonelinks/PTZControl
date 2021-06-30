@@ -1,13 +1,9 @@
 import { EventEmitter } from "events";
 import { Application } from "express-ws";
 import { FfmpegCommand } from "fluent-ffmpeg";
-import { Writable } from "stream";
-import {
-  SERVER_PORT,
-  VIDEO_STREAM_HEIGHT,
-  VIDEO_STREAM_WIDTH,
-} from "../common/constants";
-import { decode, encode } from "../common/encode";
+import { Readable, Writable } from "stream";
+import { VIDEO_STREAM_HEIGHT, VIDEO_STREAM_WIDTH } from "../common/constants";
+import { decode } from "../common/encode";
 import { MILLISECONDS_IN_SECOND, timeout } from "../common/time";
 import { DeviceId } from "../common/types";
 import { now } from "../utils/cron";
@@ -25,7 +21,7 @@ import {
   takeSnapshot,
 } from "../utils/videoDevices";
 
-export const numVideoUsersConnected: Record<DeviceId, number> = {};
+const numVideoUsersConnected: Record<DeviceId, number> = {};
 const lastUserDisconnectedMs: Record<DeviceId, number> = {};
 const ffmpegHandles: Record<DeviceId, FfmpegCommand> = {};
 const httpVideoStreamReceiverEmitters: Record<DeviceId, EventEmitter> = {};
@@ -78,25 +74,32 @@ const videoStreamUserDisconnected = (deviceId: DeviceId) => {
   if (numVideoUsersConnected[deviceId] < 0) {
     numVideoUsersConnected[deviceId] = 0;
   }
-  if (numVideoUsersConnected[deviceId] === 2) {
-    stopFfmpegStreamer(deviceId);
-  }
 };
 
-const startFfmpegStreamer = (deviceId: DeviceId) => {
+const startFfmpegStreamer = async (deviceId: DeviceId) => {
   console.log(`startFfmpegStreamer`);
   if (ffmpegHandles.hasOwnProperty(deviceId)) {
     throw Error(`ffmpeg handle already exists for ${deviceId}`);
   }
 
+  await start(deviceId);
+
   const streamFfmpegCommand = getFfmpeg({
     stdoutLines: 1,
   })
     .input(
-      `http://localhost:${SERVER_PORT}/video-device/${encode(
-        deviceId,
-      )}/stream.mjpg`,
+      new Readable({
+        read() {
+          getOrCreateCameraDevice(deviceId).emitter.once(
+            "frame",
+            (buffer: Buffer) => {
+              this.push(buffer);
+            },
+          );
+        },
+      }),
     )
+    .inputFormat("mjpeg")
     .noAudio()
     .format("mpegts")
     .videoCodec("mpeg1video")
@@ -155,50 +158,51 @@ export const registerVideoDeviceRoutes = async (app: Application) => {
     res.send(data);
   });
 
-  app.get("/video-device/:deviceId/stream.mjpg", async (req, res) => {
+  // app.get("/video-device/:deviceId/stream.mjpg", async (req, res) => {
+  //   const deviceId = decode(req.params.deviceId);
+  //   await start(deviceId);
+  //   videoStreamUserConnected(deviceId);
+  //   res.writeHead(200, {
+  //     "Cache-Control":
+  //       "no-store, no-cache, must-revalidate, pre-check=0, post-check=0, max-age=0",
+  //     Pragma: "no-cache",
+  //     Connection: "close",
+  //     "Content-Type": "multipart/x-mixed-replace; boundary=--myboundary",
+  //   });
+
+  //   const writeFrame = (buffer: Buffer) => {
+  //     res.write(
+  //       `--myboundary\nContent-Type: image/jpeg\nContent-length: ${buffer.length}\n\n`,
+  //     );
+  //     res.write(buffer);
+  //   };
+
+  //   getOrCreateCameraDevice(deviceId).emitter.addListener("frame", writeFrame);
+  //   res.addListener("close", () => {
+  //     videoStreamUserDisconnected(deviceId);
+  //     // if (numVideoUsersConnected[deviceId] === 0) {
+  //     //   stopFfmpegStreamer(deviceId);
+  //     // }
+  //     getOrCreateCameraDevice(deviceId).emitter.removeListener(
+  //       "frame",
+  //       writeFrame,
+  //     );
+  //   });
+  // });
+
+  app.ws("/video-device/:deviceId/stream.ws", async (ws, req) => {
     const deviceId = decode(req.params.deviceId);
-    await start(deviceId);
     videoStreamUserConnected(deviceId);
-    res.writeHead(200, {
-      "Cache-Control":
-        "no-store, no-cache, must-revalidate, pre-check=0, post-check=0, max-age=0",
-      Pragma: "no-cache",
-      Connection: "close",
-      "Content-Type": "multipart/x-mixed-replace; boundary=--myboundary",
-    });
-
-    const writeFrame = (buffer: Buffer) => {
-      res.write(
-        `--myboundary\nContent-Type: image/jpeg\nContent-length: ${buffer.length}\n\n`,
-      );
-      res.write(buffer);
-    };
-
-    getOrCreateCameraDevice(deviceId).emitter.addListener("frame", writeFrame);
-    res.addListener("close", () => {
-      videoStreamUserDisconnected(deviceId);
-      getOrCreateCameraDevice(deviceId).emitter.removeListener(
-        "frame",
-        writeFrame,
-      );
-    });
-  });
-
-  app.ws("/video-device/:deviceId/stream.ws", (ws, req) => {
-    const deviceId = decode(req.params.deviceId);
-
-    videoStreamUserConnected(deviceId);
-
     if (!ffmpegHandles.hasOwnProperty(deviceId)) {
-      startFfmpegStreamer(deviceId);
+      await startFfmpegStreamer(deviceId);
     }
-
     const listener = data => ws.send(data);
-    getOrCreateEventEmitterForDeviceId(deviceId).addListener("data", listener);
-
+    getOrCreateEventEmitterForDeviceId(deviceId).on("data", listener);
     ws.on("close", () => {
       videoStreamUserDisconnected(deviceId);
-      stopFfmpegStreamer(deviceId);
+      if (numVideoUsersConnected[deviceId] === 0) {
+        stopFfmpegStreamer(deviceId);
+      }
       getOrCreateEventEmitterForDeviceId(deviceId).removeListener(
         "data",
         listener,

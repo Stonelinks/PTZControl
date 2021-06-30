@@ -1,5 +1,7 @@
 import React from "react";
-import { VIDEO_STREAM_HEIGHT, VIDEO_STREAM_WIDTH } from "../common/constants";
+import _ from "lodash";
+import { MILLISECONDS_IN_SECOND } from "../common/time";
+import { VIDEO_STREAM_WIDTH, VIDEO_STREAM_HEIGHT } from "../common/constants";
 
 // tslint:disable-next-line:no-var-requires
 const JSMpeg = require("@cycjimmy/jsmpeg-player");
@@ -22,7 +24,7 @@ export class JsmpegPlayer extends React.Component<Props> {
   video: any;
   els: any;
 
-  componentDidMount() {
+  componentDidMount = _.debounce(() => {
     console.log(`JsmpegPlayer componentDidMount`);
     // Reference documentation, pay attention to the order of parameters.
     // https://github.com/cycjimmy/jsmpeg-player#usage
@@ -34,7 +36,7 @@ export class JsmpegPlayer extends React.Component<Props> {
     );
 
     this.play();
-  }
+  }, MILLISECONDS_IN_SECOND);
 
   play() {
     console.log(`JsmpegPlayer play`);
