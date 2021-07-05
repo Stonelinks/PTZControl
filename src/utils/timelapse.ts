@@ -2,6 +2,7 @@ import { Interval } from "luxon";
 import * as fetch from "node-fetch";
 import * as shell from "shelljs";
 import {
+  CACHE_FOLDER,
   CAPTURE_FOLDER,
   DEVICE_ID_NONE,
   TIMELAPSE_CHUNK_SIZE,
@@ -12,7 +13,7 @@ import {
   getLastUserDisconnectedMs,
   isStreamingVideo,
 } from "../routes/videoDevices";
-import { deleteFile } from "../utils/files";
+import { deleteFile, recursivelyListDir } from "../utils/files";
 import { cachedDownsize } from "../utils/images";
 import { getConfig, setConfigValue } from "./config";
 import { DEFAULT_INTERVAL_MS, localNow } from "./cron";
