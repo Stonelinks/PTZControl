@@ -19,3 +19,5 @@ export const VIDEO_STREAM_WIDTH = 640;
 export const VIDEO_STREAM_HEIGHT = 480;
 
 export const DEVICE_ID_NONE = "Null device ID";
+
+export const TIMELAPSE_CHUNK_SIZE = 200;
