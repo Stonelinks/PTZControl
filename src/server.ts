@@ -11,6 +11,7 @@ import { registerTimelapseRoutes } from "./routes/timelapse";
 import { getThumbnail } from "./utils/images";
 import { decode } from "./common/encode";
 import * as expressWs from "express-ws";
+import { streamingRoutes } from "./routes/streaming";
 
 const app = (express() as unknown) as expressWs.Application;
 
@@ -52,6 +53,7 @@ app.get("/thumb/:imageFilePath", async (req, res) => {
   try {
     await initConfig();
     await registerVideoDeviceRoutes(app);
+    await streamingRoutes(app);
     await registerConfigRoutes(app);
     await registerTimelapseRoutes(app);
   } catch (e) {

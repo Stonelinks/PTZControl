@@ -60,7 +60,7 @@ const VideoDeviceViewer = ({
                   }}
                 /> */}
                 <JsmpegPlayer
-                  videoUrl={`${WS_BASE_URL}/video-device/${encode(
+                  videoUrl={`${WS_BASE_URL}/stream/${encode(
                     deviceId,
                   )}/stream.ws`}
                   options={{ audio: false }}
