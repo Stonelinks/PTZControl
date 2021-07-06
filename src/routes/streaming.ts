@@ -9,8 +9,13 @@ import { now } from "../utils/cron";
 import { getFfmpeg } from "../utils/ffmpeg";
 import { getOrCreateCameraDevice, start } from "../utils/videoDevices";
 
+enum VideoStreamTypes {
+  ffmpeg = "ffmpeg",
+  mjpeg = "mjpeg",
+}
 interface StreamingInfo {
-  numVideoUsersConnected: number;
+  ffmpegNumVideoUsersConnected: number;
+  mjpegNumVideoUsersConnected: number;
   lastUserDisconnectedMs: number;
   ffmpegHandle?: FfmpegCommand;
   frameEmitter: EventEmitter;
@@ -21,7 +26,8 @@ const streamingInfo: Record<DeviceId, StreamingInfo> = {};
 const getOrCreateStreamingInfo = (deviceId: DeviceId): StreamingInfo => {
   if (!streamingInfo.hasOwnProperty(deviceId)) {
     streamingInfo[deviceId] = {
-      numVideoUsersConnected: 0,
+      ffmpegNumVideoUsersConnected: 0,
+      mjpegNumVideoUsersConnected: 0,
       lastUserDisconnectedMs: 0,
       frameEmitter: new EventEmitter(),
     };
@@ -36,31 +42,83 @@ export const getLastUserDisconnectedMs = (deviceId: DeviceId) =>
   getOrCreateStreamingInfo(deviceId).lastUserDisconnectedMs;
 
 export const isStreamingVideo = (deviceId: DeviceId) => {
-  const r = getOrCreateStreamingInfo(deviceId).numVideoUsersConnected > 0;
+  const {
+    mjpegNumVideoUsersConnected,
+    ffmpegNumVideoUsersConnected,
+  } = getOrCreateStreamingInfo(deviceId);
+  const r = mjpegNumVideoUsersConnected > 0 || ffmpegNumVideoUsersConnected > 0;
   console.log(`isStreamingVideo ${r}`);
   return r;
 };
 
-const videoStreamUserConnected = (deviceId: DeviceId) => {
-  console.log(`user connected to video stream ${deviceId}`);
-  const { numVideoUsersConnected } = getOrCreateStreamingInfo(deviceId);
+const videoStreamUserConnected = (
+  deviceId: DeviceId,
+  type: VideoStreamTypes,
+) => {
+  console.log(`user connected to video stream ${type} ${deviceId}`);
+  const {
+    ffmpegNumVideoUsersConnected,
+    mjpegNumVideoUsersConnected,
+  } = getOrCreateStreamingInfo(deviceId);
+
+  let newFfmpegNumVideoUsersConnected = ffmpegNumVideoUsersConnected;
+  let newMjpegNumVideoUsersConnected = mjpegNumVideoUsersConnected;
+
+  switch (type) {
+    case VideoStreamTypes.ffmpeg:
+      newFfmpegNumVideoUsersConnected++;
+      break;
+    case VideoStreamTypes.mjpeg:
+      newMjpegNumVideoUsersConnected++;
+      break;
+    default:
+      break;
+  }
+
   streamingInfo[deviceId] = {
     ...streamingInfo[deviceId],
-    numVideoUsersConnected: numVideoUsersConnected + 1,
+    ffmpegNumVideoUsersConnected: newFfmpegNumVideoUsersConnected,
+    mjpegNumVideoUsersConnected: newMjpegNumVideoUsersConnected,
   };
 };
 
-const videoStreamUserDisconnected = (deviceId: DeviceId) => {
-  console.log(`user disconnected to video stream ${deviceId}`);
-  const { numVideoUsersConnected } = getOrCreateStreamingInfo(deviceId);
-  let newNumVideoUsersConnected = numVideoUsersConnected - 1;
-  if (newNumVideoUsersConnected < 0) {
-    newNumVideoUsersConnected = 0;
+const videoStreamUserDisconnected = (
+  deviceId: DeviceId,
+  type: VideoStreamTypes,
+) => {
+  console.log(`user disconnected to video stream ${type} ${deviceId}`);
+  const {
+    ffmpegNumVideoUsersConnected,
+    mjpegNumVideoUsersConnected,
+  } = getOrCreateStreamingInfo(deviceId);
+
+  let newFfmpegNumVideoUsersConnected = ffmpegNumVideoUsersConnected;
+  let newMjpegNumVideoUsersConnected = mjpegNumVideoUsersConnected;
+
+  switch (type) {
+    case VideoStreamTypes.ffmpeg:
+      newFfmpegNumVideoUsersConnected++;
+      newFfmpegNumVideoUsersConnected = ffmpegNumVideoUsersConnected - 1;
+      if (newFfmpegNumVideoUsersConnected < 0) {
+        newFfmpegNumVideoUsersConnected = 0;
+      }
+      break;
+    case VideoStreamTypes.mjpeg:
+      newMjpegNumVideoUsersConnected++;
+      newMjpegNumVideoUsersConnected = mjpegNumVideoUsersConnected - 1;
+      if (newMjpegNumVideoUsersConnected < 0) {
+        newMjpegNumVideoUsersConnected = 0;
+      }
+      break;
+    default:
+      break;
   }
+
   streamingInfo[deviceId] = {
     ...streamingInfo[deviceId],
     lastUserDisconnectedMs: now(),
-    numVideoUsersConnected: newNumVideoUsersConnected,
+    ffmpegNumVideoUsersConnected: newFfmpegNumVideoUsersConnected,
+    mjpegNumVideoUsersConnected: newMjpegNumVideoUsersConnected,
   };
 };
 
@@ -135,42 +193,39 @@ const stopFfmpegStreamer = (deviceId: DeviceId) => {
 };
 
 export const streamingRoutes = async (app: Application) => {
-  // app.get("/stream/:deviceId/stream.mjpg", async (req, res) => {
-  //   const deviceId = decode(req.params.deviceId);
-  //   await start(deviceId);
-  //   videoStreamUserConnected(deviceId);
-  //   res.writeHead(200, {
-  //     "Cache-Control":
-  //       "no-store, no-cache, must-revalidate, pre-check=0, post-check=0, max-age=0",
-  //     Pragma: "no-cache",
-  //     Connection: "close",
-  //     "Content-Type": "multipart/x-mixed-replace; boundary=--myboundary",
-  //   });
+  app.get("/stream/:deviceId/stream.mjpg", async (req, res) => {
+    const deviceId = decode(req.params.deviceId);
+    await start(deviceId);
+    videoStreamUserConnected(deviceId, VideoStreamTypes.mjpeg);
+    res.writeHead(200, {
+      "Cache-Control":
+        "no-store, no-cache, must-revalidate, pre-check=0, post-check=0, max-age=0",
+      Pragma: "no-cache",
+      Connection: "close",
+      "Content-Type": "multipart/x-mixed-replace; boundary=--myboundary",
+    });
 
-  //   const writeFrame = (buffer: Buffer) => {
-  //     res.write(
-  //       `--myboundary\nContent-Type: image/jpeg\nContent-length: ${buffer.length}\n\n`,
-  //     );
-  //     res.write(buffer);
-  //   };
+    const writeFrame = (buffer: Buffer) => {
+      res.write(
+        `--myboundary\nContent-Type: image/jpeg\nContent-length: ${buffer.length}\n\n`,
+      );
+      res.write(buffer);
+    };
 
-  //   getOrCreateCameraDevice(deviceId).emitter.addListener("frame", writeFrame);
-  //   res.addListener("close", () => {
-  //     videoStreamUserDisconnected(deviceId);
-  //     // if (numVideoUsersConnected[deviceId] === 0) {
-  //     //   stopFfmpegStreamer(deviceId);
-  //     // }
-  //     getOrCreateCameraDevice(deviceId).emitter.removeListener(
-  //       "frame",
-  //       writeFrame,
-  //     );
-  //   });
-  // });
+    getOrCreateCameraDevice(deviceId).emitter.addListener("frame", writeFrame);
+    res.addListener("close", () => {
+      videoStreamUserDisconnected(deviceId, VideoStreamTypes.mjpeg);
+      getOrCreateCameraDevice(deviceId).emitter.removeListener(
+        "frame",
+        writeFrame,
+      );
+    });
+  });
 
   app.ws("/stream/:deviceId/ffmpeg.ws", async (ws, req) => {
     const deviceId = decode(req.params.deviceId);
     console.log(`ws open ${deviceId}`);
-    videoStreamUserConnected(deviceId);
+    videoStreamUserConnected(deviceId, VideoStreamTypes.ffmpeg);
     const { ffmpegHandle } = getOrCreateStreamingInfo(deviceId);
     if (!ffmpegHandle) {
       await startFfmpegStreamer(deviceId);
@@ -179,8 +234,10 @@ export const streamingRoutes = async (app: Application) => {
     getOrCreateFfmpegFrameEmitter(deviceId).on("data", listener);
     ws.on("close", () => {
       console.log(`ws close ${deviceId}`);
-      videoStreamUserDisconnected(deviceId);
-      if (getOrCreateStreamingInfo(deviceId).numVideoUsersConnected === 0) {
+      videoStreamUserDisconnected(deviceId, VideoStreamTypes.ffmpeg);
+      if (
+        getOrCreateStreamingInfo(deviceId).ffmpegNumVideoUsersConnected === 0
+      ) {
         stopFfmpegStreamer(deviceId);
       }
       getOrCreateFfmpegFrameEmitter(deviceId).removeListener("data", listener);
