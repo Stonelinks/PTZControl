@@ -9,64 +9,65 @@ import { now } from "../utils/cron";
 import { getFfmpeg } from "../utils/ffmpeg";
 import { getOrCreateCameraDevice, start } from "../utils/videoDevices";
 
-const numVideoUsersConnected: Record<DeviceId, number> = {};
-const lastUserDisconnectedMs: Record<DeviceId, number> = {};
-const ffmpegHandles: Record<DeviceId, FfmpegCommand> = {};
-const httpVideoStreamReceiverEmitters: Record<DeviceId, EventEmitter> = {};
+interface StreamingInfo {
+  numVideoUsersConnected: number;
+  lastUserDisconnectedMs: number;
+  ffmpegHandle?: FfmpegCommand;
+  frameEmitter: EventEmitter;
+}
 
-const getOrCreateEventEmitterForDeviceId = (
-  deviceId: DeviceId,
-): EventEmitter => {
-  if (!httpVideoStreamReceiverEmitters.hasOwnProperty(deviceId)) {
-    httpVideoStreamReceiverEmitters[deviceId] = new EventEmitter();
+const streamingInfo: Record<DeviceId, StreamingInfo> = {};
+
+const getOrCreateStreamingInfo = (deviceId: DeviceId): StreamingInfo => {
+  if (!streamingInfo.hasOwnProperty(deviceId)) {
+    streamingInfo[deviceId] = {
+      numVideoUsersConnected: 0,
+      lastUserDisconnectedMs: 0,
+      frameEmitter: new EventEmitter(),
+    };
   }
-  return httpVideoStreamReceiverEmitters[deviceId];
+  return streamingInfo[deviceId];
 };
 
-export const getLastUserDisconnectedMs = (deviceId: DeviceId) => {
-  const r = numVideoUsersConnected[deviceId];
-  if (!r) {
-    return 0;
-  } else {
-    return r;
-  }
-};
+const getOrCreateFfmpegFrameEmitter = (deviceId: DeviceId): EventEmitter =>
+  getOrCreateStreamingInfo(deviceId).frameEmitter;
+
+export const getLastUserDisconnectedMs = (deviceId: DeviceId) =>
+  getOrCreateStreamingInfo(deviceId).lastUserDisconnectedMs;
 
 export const isStreamingVideo = (deviceId: DeviceId) => {
-  const r = numVideoUsersConnected[deviceId];
-  let ret = false;
-  if (!r) {
-    ret = false;
-  } else {
-    ret = r > 1;
-  }
-  console.log(`isStreamingVideo ${deviceId} ${ret}`);
-  return ret;
+  const r = getOrCreateStreamingInfo(deviceId).numVideoUsersConnected > 0;
+  console.log(`isStreamingVideo ${r}`);
+  return r;
 };
 
 const videoStreamUserConnected = (deviceId: DeviceId) => {
-  console.log("user connected to video stream", deviceId);
-  if (!numVideoUsersConnected.hasOwnProperty(deviceId)) {
-    numVideoUsersConnected[deviceId] = 0;
-  }
-  numVideoUsersConnected[deviceId]++;
+  console.log(`user connected to video stream ${deviceId}`);
+  const { numVideoUsersConnected } = getOrCreateStreamingInfo(deviceId);
+  streamingInfo[deviceId] = {
+    ...streamingInfo[deviceId],
+    numVideoUsersConnected: numVideoUsersConnected + 1,
+  };
 };
 
 const videoStreamUserDisconnected = (deviceId: DeviceId) => {
-  console.log("user disconnected from video stream", deviceId);
-  lastUserDisconnectedMs[deviceId] = now();
-  if (!numVideoUsersConnected.hasOwnProperty(deviceId)) {
-    return;
+  console.log(`user disconnected to video stream ${deviceId}`);
+  const { numVideoUsersConnected } = getOrCreateStreamingInfo(deviceId);
+  let newNumVideoUsersConnected = numVideoUsersConnected - 1;
+  if (newNumVideoUsersConnected < 0) {
+    newNumVideoUsersConnected = 0;
   }
-  numVideoUsersConnected[deviceId]--;
-  if (numVideoUsersConnected[deviceId] < 0) {
-    numVideoUsersConnected[deviceId] = 0;
-  }
+  streamingInfo[deviceId] = {
+    ...streamingInfo[deviceId],
+    lastUserDisconnectedMs: now(),
+    numVideoUsersConnected: newNumVideoUsersConnected,
+  };
 };
 
 const startFfmpegStreamer = async (deviceId: DeviceId) => {
   console.log(`startFfmpegStreamer`);
-  if (ffmpegHandles.hasOwnProperty(deviceId)) {
+  const { ffmpegHandle } = getOrCreateStreamingInfo(deviceId);
+  if (ffmpegHandle) {
     throw Error(`ffmpeg handle already exists for ${deviceId}`);
   }
 
@@ -106,13 +107,13 @@ const startFfmpegStreamer = async (deviceId: DeviceId) => {
     }
   });
 
-  ffmpegHandles[deviceId] = streamFfmpegCommand;
+  streamingInfo[deviceId].ffmpegHandle = streamFfmpegCommand;
 
   streamFfmpegCommand.pipe(
     new Writable({
       objectMode: true,
       write: (data, encoding, callback) => {
-        getOrCreateEventEmitterForDeviceId(deviceId).emit("data", data);
+        getOrCreateFfmpegFrameEmitter(deviceId).emit("data", data);
         callback();
       },
     }),
@@ -123,15 +124,14 @@ const startFfmpegStreamer = async (deviceId: DeviceId) => {
 
 const stopFfmpegStreamer = (deviceId: DeviceId) => {
   console.log(`stopFfmpegStreamer`);
-  if (!ffmpegHandles.hasOwnProperty(deviceId)) {
+  const { ffmpegHandle } = getOrCreateStreamingInfo(deviceId);
+  if (!ffmpegHandle) {
     throw Error(`no ffmpeg handle exists for ${deviceId}`);
   }
 
-  const command = ffmpegHandles[deviceId];
+  ffmpegHandle.kill("SIGKILL");
 
-  command.kill("SIGKILL");
-
-  delete ffmpegHandles[deviceId];
+  streamingInfo[deviceId].ffmpegHandle = undefined;
 };
 
 export const streamingRoutes = async (app: Application) => {
@@ -167,23 +167,31 @@ export const streamingRoutes = async (app: Application) => {
   //   });
   // });
 
-  app.ws("/stream/:deviceId/stream.ws", async (ws, req) => {
+  app.ws("/stream/:deviceId/ffmpeg.ws", async (ws, req) => {
     const deviceId = decode(req.params.deviceId);
+    console.log(`ws open ${deviceId}`);
     videoStreamUserConnected(deviceId);
-    if (!ffmpegHandles.hasOwnProperty(deviceId)) {
+    const { ffmpegHandle } = getOrCreateStreamingInfo(deviceId);
+    if (!ffmpegHandle) {
       await startFfmpegStreamer(deviceId);
     }
     const listener = data => ws.send(data);
-    getOrCreateEventEmitterForDeviceId(deviceId).on("data", listener);
+    getOrCreateFfmpegFrameEmitter(deviceId).on("data", listener);
     ws.on("close", () => {
+      console.log(`ws close ${deviceId}`);
       videoStreamUserDisconnected(deviceId);
-      if (numVideoUsersConnected[deviceId] === 0) {
+      if (getOrCreateStreamingInfo(deviceId).numVideoUsersConnected === 0) {
         stopFfmpegStreamer(deviceId);
       }
-      getOrCreateEventEmitterForDeviceId(deviceId).removeListener(
-        "data",
-        listener,
-      );
+      getOrCreateFfmpegFrameEmitter(deviceId).removeListener("data", listener);
     });
+
+    // let lastHeartBeatMs = now();
+    // ws.on("message", m => {
+    //   if (m === "heartbeat") {
+    //     console.log(`received ${deviceId} heartbeat`);
+    //     lastHeartBeatMs = now();
+    //   }
+    // });
   });
 };
