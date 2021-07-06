@@ -5,7 +5,7 @@ import { encode } from "../common/encode";
 import { DeviceId } from "../common/types";
 import { RootState } from "../redux";
 import { apiCall } from "../redux/api/actions";
-import { HTTP_BASE_URL, WS_BASE_URL } from "../utils/api";
+import { WS_BASE_URL } from "../utils/api";
 import { FfmpegVideoStreamPlayer } from "./FfmpegVideoStreamPlayer";
 import VideoDeviceControl from "./VideoDeviceControl";
 

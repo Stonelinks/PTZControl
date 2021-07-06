@@ -1,7 +1,7 @@
-import React from "react";
 import _ from "lodash";
+import React from "react";
+import { VIDEO_STREAM_HEIGHT, VIDEO_STREAM_WIDTH } from "../common/constants";
 import { MILLISECONDS_IN_SECOND } from "../common/time";
-import { VIDEO_STREAM_WIDTH, VIDEO_STREAM_HEIGHT } from "../common/constants";
 
 // tslint:disable-next-line:no-var-requires
 const JSMpeg = require("@cycjimmy/jsmpeg-player");
@@ -23,6 +23,10 @@ export class FfmpegVideoStreamPlayer extends React.Component<Props> {
   video: any;
   els: any;
 
+  getSocket = (): WebSocket => {
+    return this.video.player.source.socket;
+  };
+
   componentDidMount = _.debounce(() => {
     console.log(`FfmpegVideoStreamPlayer componentDidMount`);
     // Reference documentation, pay attention to the order of parameters.
@@ -32,17 +36,24 @@ export class FfmpegVideoStreamPlayer extends React.Component<Props> {
       this.props.videoUrl,
       {
         audio: false,
-        hooks: {
-          play: () => {
-            // const socket = this.video.player.source.socket as WebSocket;
-            // this.heartBeatInterval = setInterval(() => {
-            //   socket.send("heartbeat");
-            // }, 10 * MILLISECONDS_IN_SECOND);
-          },
-          pause: () => {},
-          stop: () => {},
-          load: () => {},
-        },
+        // hooks: {
+        //   play: () => {
+        //     const socket = this.getSocket();
+        //     this.heartBeatInterval = setInterval(() => {
+        //       socket.send(WebSocketVideoMessageTypes.heartbeat);
+        //     }, 30 * MILLISECONDS_IN_SECOND);
+        //     socket.send(WebSocketVideoMessageTypes.play);
+        //   },
+        //   pause: () => {
+        //     this.getSocket().send(WebSocketVideoMessageTypes.pause)
+        //   },
+        //   stop: () => {
+        //     this.getSocket().send(WebSocketVideoMessageTypes.stop)
+        //   },
+        //   load: () => {
+        //     this.getSocket().send(WebSocketVideoMessageTypes.load)
+        //   },
+        // },
       },
       {},
     );

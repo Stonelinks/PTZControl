@@ -67,7 +67,6 @@ class Cron {
   }
 }
 
-// const crons = [CaptureCronJob, CacheCleanCronJob];
 const crons = [CaptureCronJob, CameraStreamTimeoutCronJob, CacheCleanCronJob];
 
 // if (ENABLE_PTZ) {

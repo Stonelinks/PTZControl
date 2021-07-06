@@ -13,6 +13,7 @@ enum VideoStreamTypes {
   ffmpeg = "ffmpeg",
   mjpeg = "mjpeg",
 }
+
 interface StreamingInfo {
   ffmpegNumVideoUsersConnected: number;
   mjpegNumVideoUsersConnected: number;
@@ -243,11 +244,21 @@ export const streamingRoutes = async (app: Application) => {
       getOrCreateFfmpegFrameEmitter(deviceId).removeListener("data", listener);
     });
 
-    // let lastHeartBeatMs = now();
     // ws.on("message", m => {
-    //   if (m === "heartbeat") {
-    //     console.log(`received ${deviceId} heartbeat`);
-    //     lastHeartBeatMs = now();
+    //   console.log(`received ${deviceId} ${m}`);
+    //   switch (m as WebSocketVideoMessageTypes) {
+    //     case WebSocketVideoMessageTypes.heartbeat:
+    //       break;
+    //     case WebSocketVideoMessageTypes.play:
+    //       break;
+    //     case WebSocketVideoMessageTypes.pause:
+    //       break;
+    //     case WebSocketVideoMessageTypes.stop:
+    //       break;
+    //     case WebSocketVideoMessageTypes.load:
+    //       break;
+    //     default:
+    //       break;
     //   }
     // });
   });
