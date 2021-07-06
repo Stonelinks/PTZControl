@@ -1,3 +1,4 @@
+import * as path from "path";
 import * as bodyParser from "body-parser";
 import * as cors from "cors";
 import * as url from "url";
@@ -12,6 +13,7 @@ import { getThumbnail } from "./utils/images";
 import { decode } from "./common/encode";
 import * as expressWs from "express-ws";
 import { streamingRoutes } from "./routes/streaming";
+import { deleteFile } from "./utils/files";
 
 const app = (express() as unknown) as expressWs.Application;
 
@@ -47,6 +49,12 @@ app.get("/thumb/:imageFilePath", async (req, res) => {
   const imageFilePath = decode(req.params.imageFilePath);
   const thumbPath = await getThumbnail(imageFilePath);
   res.sendFile(thumbPath);
+});
+
+app.get("/delete/:filePath", async (req, res) => {
+  const filePath = decode(req.params.filePath);
+  await deleteFile(path.join(CAPTURE_FOLDER, filePath));
+  res.send(200);
 });
 
 (async () => {
